@@ -1,0 +1,2689 @@
+Create a premium enterprise-level web application called "FraudShield AI".
+
+The website should be modern, futuristic, innovative, and professionally designed.
+
+The design must NOT look like a typical AI-generated website.
+
+Everything should look handcrafted by an experienced UI/UX designer.
+
+The project is for a hackathon.
+
+The judges should immediately feel impressed when they open the website.
+
+The website should represent innovation, trust, intelligence, and security.
+
+Avoid cartoonish elements.
+
+Avoid unnecessary bright colors.
+
+Use premium animations.
+
+The website should feel similar to ChatGPT in simplicity but more futuristic.
+
+Use a dark theme.
+
+Primary colors:
+Deep Black
+Dark Navy
+Slate Gray
+
+Accent colors:
+Emerald Green
+Royal Blue
+Golden Yellow
+Soft Red
+
+Use glassmorphism.
+
+Use smooth shadows.
+
+Rounded corners everywhere.
+
+Modern typography.
+
+Professional spacing.
+
+No clutter.
+
+Lots of whitespace.
+
+Use smooth page transitions.
+
+Every hover should have animation.
+
+Every button should feel premium.
+
+No laggy animations.
+
+Everything must be responsive.
+
+Desktop first.
+
+Tablet optimized.
+
+Mobile optimized.
+
+------------------------------------------------
+
+LANDING PAGE
+
+------------------------------------------------
+
+When the website opens,
+display a full-screen landing animation.
+
+Background should be animated.
+
+Use floating particles.
+
+Very slow movement.
+
+Soft glowing lines.
+
+Network nodes.
+
+AI circuit animations.
+
+Light rays moving slowly.
+
+Animated gradient.
+
+Glass blur effect.
+
+Display the logo in the center.
+
+Logo should animate.
+
+Logo slowly rotates.
+
+Small glowing effect.
+
+Display text
+
+FraudShield AI
+
+Below it
+
+Real-Time Invoice Fraud Detection Platform
+
+Below it
+
+Powered by Artificial Intelligence
+
+Fade-in animation.
+
+After 3 seconds
+
+Show
+
+Get Started
+
+button.
+
+Button should have glowing border.
+
+Hover animation.
+
+------------------------------------------------
+
+LOGIN PAGE
+
+------------------------------------------------
+
+When clicking Get Started
+
+Open login page.
+
+No popup.
+
+Entire page transition.
+
+Smooth animation.
+
+Split screen layout.
+
+Left side
+
+Creative animation.
+
+Right side
+
+Login card.
+
+------------------------------------------------
+
+LEFT SIDE
+
+------------------------------------------------
+
+Show an animated office.
+
+Invoices floating.
+
+AI scanning them.
+
+Green invoices move into Approved.
+
+Yellow invoices move into Review.
+
+Red invoices move into Fraud.
+
+Show laser scanning effect.
+
+Display live statistics.
+
+Invoices Checked
+
+Fraud Prevented
+
+Money Saved
+
+Detection Accuracy
+
+Everything animated.
+
+Do not use stock illustrations.
+
+Use custom SVG animations.
+
+Human-looking design.
+
+------------------------------------------------
+
+RIGHT SIDE
+
+------------------------------------------------
+
+Glassmorphism login card.
+
+Rounded edges.
+
+Blur background.
+
+Soft glow.
+
+Fields
+
+Email
+
+Password
+
+Remember Me checkbox
+
+Forgot Password
+
+Login button
+
+Below Login button
+
+OR
+
+Stay Logged Out
+
+This button should allow guest mode.
+
+No login required.
+
+Guest mode should open the website.
+
+Display message
+
+Continue as Guest
+
+Hover animation.
+
+Do NOT force login.
+
+------------------------------------------------
+
+LOGIN ANIMATION
+
+------------------------------------------------
+
+When Login button clicked
+
+Button transforms into loader.
+
+Loader becomes shield icon.
+
+Shield scans.
+
+Verification animation.
+
+Success checkmark.
+
+Then transition into dashboard.
+
+No page reload.
+
+Very smooth animation.
+
+------------------------------------------------
+
+NAVIGATION
+
+------------------------------------------------
+
+There should be no traditional website navigation.
+
+No top navbar.
+
+No multiple pages.
+
+Everything should exist inside one page.
+
+Exactly like ChatGPT.
+
+Left sidebar.
+
+Main workspace.
+
+Floating assistant.
+
+------------------------------------------------
+
+LEFT SIDEBAR
+
+------------------------------------------------
+
+Collapsible.
+
+Animated.
+
+Contains
+
+Dashboard
+
+Invoices
+
+Vendor Database
+
+Fraud Reports
+
+Analytics
+
+Audit Logs
+
+Settings
+
+Help
+
+Each icon animated.
+
+Hover expands.
+
+Selected page highlighted.
+
+------------------------------------------------
+
+TOP HEADER
+
+------------------------------------------------
+
+Small top header.
+
+Contains
+
+Website logo
+
+Search bar
+
+Notification icon
+
+Profile picture
+
+Dark mode already enabled.
+
+------------------------------------------------
+
+MAIN WORKSPACE
+
+------------------------------------------------
+
+The workspace should feel exactly like ChatGPT.
+
+Large empty area.
+
+Centered.
+
+Minimal.
+
+Professional.
+
+Display welcome message
+
+Welcome to FraudShield AI
+
+Below
+
+Upload invoices and let AI verify them instantly.
+
+------------------------------------------------
+
+UPLOAD SECTION
+
+------------------------------------------------
+
+Large upload box.
+
+Dashed border.
+
+Rounded corners.
+
+Animated.
+
+Display upload icon.
+
+Text
+
+Drag & Drop Invoice Here
+
+Supported formats
+
+PDF
+
+PNG
+
+JPG
+
+JPEG
+
+CSV
+
+XLS
+
+XLSX
+
+DOCX
+
+XML
+
+JSON
+
+ZIP
+
+RAR
+
+Below
+
+Browse Files
+
+Button.
+
+Hover animation.
+
+When hovering
+
+Border glows.
+
+------------------------------------------------
+
+UPLOAD ANIMATION
+
+------------------------------------------------
+
+When invoice uploaded
+
+Card expands.
+
+Progress animation.
+
+Scanning effect.
+
+AI laser animation.
+
+Loading percentage.
+
+Reading invoice...
+
+Extracting details...
+
+Checking vendor...
+
+Verifying timestamp...
+
+Checking duplicate invoice...
+
+Generating fraud score...
+
+Please wait...
+
+Everything animated.
+
+------------------------------------------------
+
+BACKGROUND
+
+------------------------------------------------
+
+Background should never remain static.
+
+Use subtle moving gradients.
+
+Tiny floating particles.
+
+Soft glowing circles.
+
+No distracting animations.
+
+Everything elegant.
+
+------------------------------------------------
+
+VOICE ASSISTANT
+
+------------------------------------------------
+
+Bottom right corner.
+
+Small floating circular button.
+
+Microphone icon.
+
+Pulse animation.
+
+Tooltip
+
+Ask FraudShield AI
+
+When clicked
+
+Assistant opens.
+
+Slide animation.
+
+Very smooth.
+
+------------------------------------------------
+
+CHAT ASSISTANT
+
+------------------------------------------------
+
+The assistant should look like ChatGPT.
+
+Messages appear one after another.
+
+Typing animation.
+
+Human-like conversation.
+
+No robotic responses.
+
+Modern chat bubbles.
+
+Auto scroll.
+
+Professional spacing.
+
+------------------------------------------------
+
+LOADING ANIMATIONS
+
+------------------------------------------------
+
+Use skeleton loaders.
+
+Use shimmer effects.
+
+Never show blank screens.
+
+Every loading action should feel alive.
+
+------------------------------------------------
+
+MICRO INTERACTIONS
+
+------------------------------------------------
+
+Every click should have ripple animation.
+
+Cards slightly lift on hover.
+
+Buttons scale smoothly.
+
+Icons rotate slightly.
+
+Charts animate.
+
+Numbers count upwards.
+
+Transitions under 300ms.
+
+------------------------------------------------
+
+OVERALL FEEL
+
+------------------------------------------------
+
+The application should look like software used by multinational finance companies.
+
+Premium.
+
+Enterprise.
+
+Minimal.
+
+Innovative.
+
+Professional.
+
+Human-designed.
+
+The UI should immediately impress hackathon judges within the first 10 seconds.
+
+Continue generating the application using reusable React components, clean folder structure, accessible design, and maintainable code.
+
+
+
+
+
+
+
+
+Continue building the existing FraudShield AI application.
+
+Do not redesign the previous UI.
+
+Maintain the same premium design language.
+
+Maintain the same color palette.
+
+Maintain the same animations.
+
+Maintain reusable React components.
+
+------------------------------------------------
+
+AFTER INVOICE UPLOAD
+
+------------------------------------------------
+
+Immediately begin AI verification.
+
+Display an animated verification timeline.
+
+Step 1
+Reading Invoice...
+
+Step 2
+Extracting Text...
+
+Step 3
+Checking Vendor...
+
+Step 4
+Checking Invoice Number...
+
+Step 5
+Checking Duplicate Invoice...
+
+Step 6
+Validating GST...
+
+Step 7
+Checking Payment Details...
+
+Step 8
+Checking Timestamp...
+
+Step 9
+Analyzing Fraud Patterns...
+
+Step 10
+Generating Risk Score...
+
+Each step should have animated progress.
+
+Each completed step should display a green checkmark.
+
+Failed verification should display a warning icon.
+
+------------------------------------------------
+
+OCR EXTRACTION
+
+------------------------------------------------
+
+Automatically extract:
+
+Vendor Name
+
+Vendor ID
+
+Invoice Number
+
+Purchase Order Number
+
+Invoice Date
+
+Due Date
+
+Timestamp
+
+Currency
+
+Invoice Amount
+
+Tax Amount
+
+GST Number
+
+PAN Number
+
+Bank Account Number
+
+IFSC Code
+
+Payment Terms
+
+Buyer Name
+
+Buyer Address
+
+Vendor Address
+
+Email
+
+Phone Number
+
+Product List
+
+Item Quantity
+
+Unit Price
+
+Total Amount
+
+Discount
+
+Shipping Cost
+
+Grand Total
+
+Store all extracted values.
+
+Display them beautifully.
+
+------------------------------------------------
+
+VERIFICATION PANEL
+
+------------------------------------------------
+
+Show extracted information inside elegant cards.
+
+Use two-column layout.
+
+Left column
+
+Vendor Information
+
+Right column
+
+Invoice Information
+
+Cards should be collapsible.
+
+Cards should have smooth animations.
+
+------------------------------------------------
+
+VENDOR VERIFICATION
+
+------------------------------------------------
+
+Verify whether vendor exists.
+
+Check vendor database.
+
+Check vendor registration.
+
+Check vendor GST.
+
+Check vendor PAN.
+
+Check vendor address.
+
+Check email format.
+
+Check phone number.
+
+Check blacklisted vendors.
+
+Check inactive vendors.
+
+Check duplicate vendor accounts.
+
+Display
+
+Verified
+
+Suspicious
+
+Unknown
+
+------------------------------------------------
+
+DATE VALIDATION
+
+------------------------------------------------
+
+Verify invoice date.
+
+Future date detection.
+
+Expired invoice detection.
+
+Invalid format detection.
+
+Weekend payment detection.
+
+Holiday warning.
+
+Timestamp mismatch detection.
+
+Display clear explanation.
+
+------------------------------------------------
+
+PAYMENT VALIDATION
+
+------------------------------------------------
+
+Check payment account.
+
+Check beneficiary account.
+
+Detect changed bank account.
+
+Detect multiple bank accounts.
+
+Check IFSC.
+
+Check account duplication.
+
+Check payment amount mismatch.
+
+Display results.
+
+------------------------------------------------
+
+DUPLICATE DETECTION
+
+------------------------------------------------
+
+Compare
+
+Invoice Number
+
+Vendor
+
+Amount
+
+Date
+
+GST
+
+Purchase Order
+
+Payment Reference
+
+If duplicate found
+
+Highlight card.
+
+Red border.
+
+Shake animation.
+
+Display warning.
+
+------------------------------------------------
+
+AMOUNT ANALYSIS
+
+------------------------------------------------
+
+Compare invoice amount with historical invoices.
+
+Calculate average.
+
+Calculate deviation.
+
+If amount unusually high
+
+Display warning.
+
+Explain why.
+
+------------------------------------------------
+
+AI FRAUD DETECTION
+
+------------------------------------------------
+
+Generate Fraud Score.
+
+Score should range
+
+0 to 100.
+
+0-30
+
+Safe
+
+Green
+
+31-70
+
+Needs Review
+
+Yellow
+
+71-100
+
+High Risk
+
+Red
+
+Display large animated speedometer.
+
+Needle animation.
+
+Glowing effect.
+
+------------------------------------------------
+
+RISK INDICATOR
+
+------------------------------------------------
+
+Display three indicator lights.
+
+Green Light
+
+Invoice Safe
+
+Yellow Light
+
+Needs Manual Review
+
+Red Light
+
+Potential Fraud
+
+Lights should animate.
+
+Only one active at a time.
+
+------------------------------------------------
+
+AI EXPLANATION
+
+------------------------------------------------
+
+Never display only a score.
+
+Always explain.
+
+Example
+
+Fraud Score
+
+82%
+
+Reason
+
+Duplicate invoice detected.
+
+Vendor bank account changed recently.
+
+Amount is 420% higher than average.
+
+Invoice timestamp mismatch.
+
+Vendor inactive for 18 months.
+
+Payment requested urgently.
+
+AI Recommendation
+
+Hold payment.
+
+Contact finance team.
+
+Verify vendor.
+
+------------------------------------------------
+
+DASHBOARD
+
+------------------------------------------------
+
+After verification
+
+Display premium dashboard.
+
+Top Cards
+
+Invoices Today
+
+Approved
+
+Pending
+
+Fraud
+
+Money Saved
+
+Average Risk
+
+Active Vendors
+
+High Risk Vendors
+
+Cards animate.
+
+Numbers count upwards.
+
+------------------------------------------------
+
+CHARTS
+
+------------------------------------------------
+
+Fraud Trend
+
+Daily Invoices
+
+Monthly Fraud
+
+Vendor Distribution
+
+Risk Distribution
+
+Payment Analysis
+
+Invoice Categories
+
+Animated charts.
+
+Smooth loading.
+
+------------------------------------------------
+
+RECENT INVOICES
+
+------------------------------------------------
+
+Display table.
+
+Columns
+
+Invoice Number
+
+Vendor
+
+Date
+
+Time
+
+Amount
+
+Status
+
+Fraud Score
+
+Risk Level
+
+Actions
+
+Sorting.
+
+Filtering.
+
+Searching.
+
+Pagination.
+
+------------------------------------------------
+
+DETAIL VIEW
+
+------------------------------------------------
+
+Click any invoice.
+
+Open side panel.
+
+Display complete details.
+
+Show extracted invoice.
+
+Verification results.
+
+Risk analysis.
+
+AI explanation.
+
+Audit trail.
+
+------------------------------------------------
+
+CHATBOT
+
+------------------------------------------------
+
+Assistant should understand natural language.
+
+Examples
+
+Check invoice INV1002
+
+Find duplicate invoices
+
+Show today's fraud report
+
+Search vendor ABC
+
+Why is invoice risky?
+
+Explain fraud score.
+
+Show pending invoices.
+
+Summarize dashboard.
+
+Display monthly report.
+
+Search invoices above ₹50,000.
+
+Find invoices from yesterday.
+
+Assistant should answer naturally.
+
+Use typing animation.
+
+------------------------------------------------
+
+VOICE ASSISTANT
+
+------------------------------------------------
+
+Microphone icon.
+
+Click once to listen.
+
+Display waveform.
+
+Recognize speech.
+
+Convert speech to text.
+
+Answer using voice.
+
+Example
+
+User
+
+Check invoice INV1020
+
+Assistant
+
+Invoice INV1020 has a fraud score of 91 percent.
+
+Reason
+
+Duplicate invoice.
+
+Vendor not verified.
+
+Payment account mismatch.
+
+Recommendation
+
+Hold payment.
+
+------------------------------------------------
+
+NOTIFICATIONS
+
+------------------------------------------------
+
+Top-right notification bell.
+
+Real-time alerts.
+
+High-risk invoice detected.
+
+Duplicate invoice found.
+
+Vendor blacklisted.
+
+Payment mismatch.
+
+New invoice uploaded.
+
+Unread counter.
+
+------------------------------------------------
+
+EXPORT REPORTS
+
+------------------------------------------------
+
+Generate PDF.
+
+Generate Excel.
+
+Download verification report.
+
+Include
+
+Vendor details
+
+Invoice details
+
+Fraud score
+
+Risk level
+
+Verification history
+
+AI explanation
+
+Timestamp
+
+------------------------------------------------
+
+SEARCH
+
+------------------------------------------------
+
+Global search.
+
+Search everything.
+
+Vendor
+
+Invoice
+
+GST
+
+Amount
+
+Risk
+
+Date
+
+Status
+
+Instant search.
+
+------------------------------------------------
+
+PERFORMANCE
+
+------------------------------------------------
+
+All animations should remain smooth.
+
+Loading should never block UI.
+
+Use lazy loading.
+
+Use optimized components.
+
+Maintain premium enterprise appearance.
+
+The dashboard should feel like software used by Fortune 500 finance teams.
+
+The application should look realistic, handcrafted, elegant, and capable of winning a national-level hackathon.
+
+
+
+
+
+
+
+Continue building the existing FraudShield AI application.
+
+Do not redesign the previous interface.
+
+Maintain the same design language.
+
+Maintain the same animations.
+
+Maintain the same component structure.
+
+Everything should look handcrafted by experienced UI/UX designers.
+
+------------------------------------------------
+ADVANCED ANALYTICS PAGE
+------------------------------------------------
+
+Create a premium analytics workspace.
+
+Display beautiful animated graphs.
+
+Charts should animate while loading.
+
+Hovering over graphs should reveal tooltips.
+
+Allow users to switch between:
+
+Daily
+
+Weekly
+
+Monthly
+
+Quarterly
+
+Yearly
+
+Use smooth transitions.
+
+------------------------------------------------
+FRAUD ANALYTICS
+------------------------------------------------
+
+Display:
+
+Total invoices processed
+
+Fraud detected
+
+Fraud prevented
+
+Money saved
+
+Average fraud score
+
+Average verification time
+
+High-risk vendors
+
+Safe vendors
+
+Duplicate invoices
+
+Rejected invoices
+
+Approved invoices
+
+Pending review invoices
+
+Animate every number.
+
+Numbers should count upward.
+
+------------------------------------------------
+PIE CHARTS
+------------------------------------------------
+
+Create animated pie charts for:
+
+Invoice Status
+
+Vendor Categories
+
+Risk Distribution
+
+Payment Methods
+
+Invoice Types
+
+Tax Categories
+
+------------------------------------------------
+LINE CHARTS
+------------------------------------------------
+
+Display:
+
+Fraud trend
+
+Invoice growth
+
+Vendor activity
+
+Payment trend
+
+Monthly fraud comparison
+
+------------------------------------------------
+BAR CHARTS
+------------------------------------------------
+
+Display:
+
+Top risky vendors
+
+Highest invoice values
+
+Invoices by department
+
+Invoices by location
+
+Invoices by month
+
+------------------------------------------------
+HEATMAP
+------------------------------------------------
+
+Display a heatmap.
+
+Show where suspicious invoices originate.
+
+Color coding:
+
+Green
+
+Yellow
+
+Orange
+
+Red
+
+Allow zooming.
+
+------------------------------------------------
+AI INSIGHTS PANEL
+------------------------------------------------
+
+Create an AI Insights section.
+
+AI should automatically summarize:
+
+Today's activity
+
+Most suspicious vendor
+
+Highest invoice
+
+Most common fraud pattern
+
+Unusual payment activity
+
+Duplicate trends
+
+Display these insights naturally.
+
+Example:
+
+"Most fraud attempts today originated from duplicate invoice submissions."
+
+------------------------------------------------
+AUDIT LOG
+------------------------------------------------
+
+Create a complete audit log.
+
+Display:
+
+Timestamp
+
+User
+
+Action
+
+Status
+
+IP Address
+
+Device
+
+Location
+
+Invoice Number
+
+Verification Result
+
+Searchable.
+
+Filterable.
+
+Downloadable.
+
+------------------------------------------------
+TIMELINE
+------------------------------------------------
+
+Every invoice should contain a visual timeline.
+
+Uploaded
+
+↓
+
+OCR Completed
+
+↓
+
+Vendor Verified
+
+↓
+
+Duplicate Check
+
+↓
+
+GST Validation
+
+↓
+
+Fraud Detection
+
+↓
+
+Manual Review
+
+↓
+
+Approved or Rejected
+
+Each stage animated.
+
+------------------------------------------------
+ADMIN PANEL
+------------------------------------------------
+
+Create an admin workspace.
+
+Allow administrator to:
+
+Manage vendors
+
+Approve invoices
+
+Reject invoices
+
+Blacklist vendors
+
+Whitelist vendors
+
+Reset fraud scores
+
+Assign reviewers
+
+Generate reports
+
+View system health
+
+------------------------------------------------
+USER MANAGEMENT
+------------------------------------------------
+
+Create user roles.
+
+Admin
+
+Finance Manager
+
+Reviewer
+
+Auditor
+
+Guest
+
+Each role should have permissions.
+
+------------------------------------------------
+PROFILE PAGE
+------------------------------------------------
+
+Create a profile section.
+
+Display:
+
+Name
+
+Role
+
+Department
+
+Email
+
+Phone
+
+Last Login
+
+Recent Activity
+
+Profile Picture
+
+Dark themed.
+
+Glass cards.
+
+------------------------------------------------
+SETTINGS
+------------------------------------------------
+
+Create settings page.
+
+Allow changing:
+
+Language
+
+Notifications
+
+Theme
+
+Accessibility
+
+Font Size
+
+Auto Logout Timer
+
+Voice Assistant
+
+Chat Assistant
+
+------------------------------------------------
+VOICE SETTINGS
+------------------------------------------------
+
+Allow users to:
+
+Enable Voice
+
+Disable Voice
+
+Voice Speed
+
+Voice Pitch
+
+Voice Volume
+
+Language
+
+Wake Word
+
+------------------------------------------------
+NOTIFICATION CENTER
+------------------------------------------------
+
+Create an elegant notification panel.
+
+Notifications include:
+
+Invoice Uploaded
+
+Fraud Detected
+
+Vendor Verified
+
+Duplicate Found
+
+Report Generated
+
+Payment Approved
+
+Payment Rejected
+
+Unread badge.
+
+Animated appearance.
+
+------------------------------------------------
+LIVE ACTIVITY FEED
+------------------------------------------------
+
+Create a live feed.
+
+Example:
+
+09:31
+
+Invoice uploaded.
+
+09:32
+
+OCR completed.
+
+09:33
+
+Vendor verified.
+
+09:34
+
+Duplicate detected.
+
+09:35
+
+Manual review requested.
+
+Live updates.
+
+------------------------------------------------
+SMART SEARCH
+------------------------------------------------
+
+Create universal search.
+
+Search anything.
+
+Invoice
+
+Vendor
+
+GST
+
+Email
+
+Phone
+
+Date
+
+Risk
+
+Status
+
+Amount
+
+Results should appear instantly.
+
+------------------------------------------------
+FILTERS
+------------------------------------------------
+
+Advanced filters.
+
+Date range
+
+Vendor
+
+Risk
+
+Amount
+
+Status
+
+Invoice type
+
+Department
+
+Payment mode
+
+------------------------------------------------
+EXPORT CENTER
+------------------------------------------------
+
+Allow export as:
+
+PDF
+
+Excel
+
+CSV
+
+JSON
+
+Print
+
+Include charts.
+
+Include summaries.
+
+Include timestamps.
+
+------------------------------------------------
+AI RECOMMENDATION ENGINE
+------------------------------------------------
+
+Instead of only showing fraud score,
+
+Generate recommendations.
+
+Examples:
+
+Verify vendor identity.
+
+Contact finance team.
+
+Hold payment.
+
+Request supporting documents.
+
+Check purchase order.
+
+Escalate to manager.
+
+Recommendations should feel intelligent.
+
+------------------------------------------------
+PREDICTIVE ANALYTICS
+------------------------------------------------
+
+Predict:
+
+Future fraud probability.
+
+High-risk vendors.
+
+Likely duplicate invoices.
+
+Payment anomalies.
+
+Monthly fraud forecast.
+
+Display confidence percentage.
+
+------------------------------------------------
+SYSTEM HEALTH
+------------------------------------------------
+
+Create health dashboard.
+
+Display:
+
+AI Status
+
+OCR Status
+
+Database
+
+Cloud
+
+API
+
+Storage
+
+Security
+
+Everything should animate.
+
+------------------------------------------------
+SECURITY CENTER
+------------------------------------------------
+
+Display:
+
+Encryption Enabled
+
+SSL Active
+
+Firewall Active
+
+API Protected
+
+Database Encrypted
+
+Role-Based Access
+
+Green checkmarks.
+
+------------------------------------------------
+HELP CENTER
+------------------------------------------------
+
+FAQ
+
+Documentation
+
+Contact Support
+
+Video Tutorials
+
+Keyboard Shortcuts
+
+------------------------------------------------
+LOADING EXPERIENCE
+------------------------------------------------
+
+Never leave blank spaces.
+
+Every page should use:
+
+Skeleton loaders
+
+Fade animations
+
+Smooth transitions
+
+------------------------------------------------
+EMPTY STATES
+------------------------------------------------
+
+If no invoices exist,
+
+Show a beautiful illustration.
+
+Display:
+
+"No invoices uploaded yet."
+
+Upload your first invoice.
+
+------------------------------------------------
+ERROR STATES
+------------------------------------------------
+
+Create elegant error cards.
+
+Never show browser errors.
+
+Example:
+
+Upload failed.
+
+Please try again.
+
+Retry button.
+
+------------------------------------------------
+MICRO ANIMATIONS
+------------------------------------------------
+
+Buttons gently scale.
+
+Cards slightly float.
+
+Icons rotate subtly.
+
+Charts animate.
+
+Progress bars glow.
+
+Notification slides in.
+
+Sidebar expands smoothly.
+
+------------------------------------------------
+RESPONSIVE DESIGN
+------------------------------------------------
+
+Desktop
+
+Laptop
+
+Tablet
+
+Mobile
+
+Everything adapts perfectly.
+
+------------------------------------------------
+ACCESSIBILITY
+------------------------------------------------
+
+Keyboard navigation.
+
+Screen reader support.
+
+High contrast mode.
+
+ARIA labels.
+
+------------------------------------------------
+OVERALL EXPERIENCE
+------------------------------------------------
+
+The application should feel like enterprise software used by multinational financial institutions.
+
+The interface must look handcrafted.
+
+Avoid generic templates.
+
+Avoid excessive colors.
+
+Use subtle premium animations.
+
+Maintain consistency throughout the application.
+
+The experience should impress judges immediately and demonstrate innovation, usability, accessibility, and technical excellence.
+
+
+
+
+Continue building the existing FraudShield AI application.
+
+Do not redesign previous pages.
+
+Maintain all previous UI components.
+
+Maintain the same dark premium theme.
+
+Maintain the same typography.
+
+Maintain glassmorphism.
+
+Maintain consistency throughout the application.
+
+The goal is to make the application feel like software built by a billion-dollar fintech company.
+
+------------------------------------------------
+FIRST IMPRESSION
+------------------------------------------------
+
+The first 10 seconds should amaze the judges.
+
+Everything should feel premium.
+
+Animations should be meaningful.
+
+Nothing should feel unnecessary.
+
+Maintain a clean professional interface.
+
+------------------------------------------------
+SPLASH SCREEN
+------------------------------------------------
+
+When the website first loads
+
+Show company logo.
+
+Fade in.
+
+Display animated shield.
+
+Display scanning effect.
+
+Show text
+
+Initializing FraudShield AI...
+
+Loading AI Engine...
+
+Loading Vendor Database...
+
+Connecting Secure Services...
+
+Preparing Dashboard...
+
+Loading Voice Assistant...
+
+System Ready.
+
+Fade into dashboard.
+
+------------------------------------------------
+ONBOARDING
+------------------------------------------------
+
+When user opens the application for the first time
+
+Display a short walkthrough.
+
+Step 1
+
+Upload invoices.
+
+Step 2
+
+AI verifies invoices.
+
+Step 3
+
+Review fraud score.
+
+Step 4
+
+Approve or reject.
+
+Allow skipping onboarding.
+
+Never show again after completion.
+
+------------------------------------------------
+PRESENTATION MODE
+------------------------------------------------
+
+Create a Presentation Mode button.
+
+When enabled
+
+Hide unnecessary controls.
+
+Increase font size.
+
+Highlight important dashboard metrics.
+
+Enable fullscreen.
+
+Suitable for hackathon demonstrations.
+
+------------------------------------------------
+SUCCESS ANIMATIONS
+------------------------------------------------
+
+Whenever an invoice is verified safely
+
+Display
+
+Success animation.
+
+Green pulse.
+
+Soft confetti.
+
+Checkmark animation.
+
+Never overdo animations.
+
+------------------------------------------------
+FRAUD ALERT ANIMATION
+------------------------------------------------
+
+If fraud is detected
+
+Display
+
+Red warning border.
+
+Pulse animation.
+
+Alert icon.
+
+Sound notification (optional).
+
+Display clear explanation.
+
+------------------------------------------------
+VOICE ASSISTANT PERSONALITY
+------------------------------------------------
+
+The assistant should sound professional.
+
+Friendly.
+
+Helpful.
+
+Confident.
+
+Never robotic.
+
+Example greetings
+
+"Welcome back."
+
+"Your dashboard is ready."
+
+"I found three invoices requiring review."
+
+"I can explain any fraud score."
+
+------------------------------------------------
+CHATBOT EXPERIENCE
+------------------------------------------------
+
+Messages should appear naturally.
+
+Typing animation.
+
+Thinking animation.
+
+Smooth scrolling.
+
+Conversation history.
+
+Suggested questions.
+
+Quick reply buttons.
+
+------------------------------------------------
+SAMPLE DATA
+------------------------------------------------
+
+Populate the application with realistic demo invoices.
+
+Realistic vendors.
+
+Realistic invoice numbers.
+
+Realistic dates.
+
+Realistic amounts.
+
+Different fraud levels.
+
+Never use lorem ipsum.
+
+------------------------------------------------
+JUDGE DEMO BUTTON
+------------------------------------------------
+
+Create a special button.
+
+Demo Scenario.
+
+When clicked
+
+Automatically upload sample invoice.
+
+Run AI verification.
+
+Show OCR extraction.
+
+Verify vendor.
+
+Detect fraud.
+
+Generate score.
+
+Display dashboard.
+
+This allows judges to experience the application instantly.
+
+------------------------------------------------
+AI EXPLANATION
+------------------------------------------------
+
+Always explain every decision.
+
+Avoid black-box outputs.
+
+Example
+
+Fraud Score
+
+87%
+
+Reason
+
+Duplicate invoice detected.
+
+Vendor account modified recently.
+
+Invoice submitted outside business hours.
+
+Payment exceeds historical average.
+
+Recommendation
+
+Manual verification required.
+
+------------------------------------------------
+RISK LEVEL BADGES
+------------------------------------------------
+
+Create beautiful badges.
+
+SAFE
+
+Green
+
+REVIEW
+
+Yellow
+
+HIGH RISK
+
+Red
+
+Use icons.
+
+------------------------------------------------
+TIMESTAMP DISPLAY
+------------------------------------------------
+
+Every action should display
+
+Date
+
+Time
+
+Timezone
+
+Relative time
+
+Example
+
+Today
+
+Yesterday
+
+5 minutes ago
+
+------------------------------------------------
+SEARCH EXPERIENCE
+------------------------------------------------
+
+Search results should appear instantly.
+
+Highlight matching text.
+
+Recent searches.
+
+Popular searches.
+
+------------------------------------------------
+DASHBOARD SUMMARY
+------------------------------------------------
+
+Display
+
+Today's invoices
+
+Fraud prevented
+
+Pending review
+
+Money protected
+
+Average verification time
+
+AI accuracy
+
+Vendor trust score
+
+------------------------------------------------
+PERFORMANCE
+------------------------------------------------
+
+Application should remain fast.
+
+Use lazy loading.
+
+Avoid unnecessary re-renders.
+
+Optimize images.
+
+Optimize animations.
+
+------------------------------------------------
+RESPONSIVE EXPERIENCE
+------------------------------------------------
+
+Desktop.
+
+Laptop.
+
+Tablet.
+
+Mobile.
+
+Everything should adapt smoothly.
+
+------------------------------------------------
+THEME
+------------------------------------------------
+
+Dark mode by default.
+
+Elegant gradients.
+
+Soft glowing accents.
+
+Readable typography.
+
+Professional spacing.
+
+------------------------------------------------
+ACCESSIBILITY
+------------------------------------------------
+
+Keyboard navigation.
+
+Screen reader support.
+
+Focus indicators.
+
+Color contrast.
+
+------------------------------------------------
+ERROR HANDLING
+------------------------------------------------
+
+Elegant error messages.
+
+Retry options.
+
+Helpful guidance.
+
+Never expose technical errors.
+
+------------------------------------------------
+SECURITY
+------------------------------------------------
+
+Show secure session indicators.
+
+Display encryption enabled.
+
+Role-based access.
+
+Secure upload messaging.
+
+------------------------------------------------
+FINAL POLISH
+------------------------------------------------
+
+Every hover should feel satisfying.
+
+Every transition should be smooth.
+
+Every animation should have a purpose.
+
+Avoid generic layouts.
+
+Avoid template-like appearance.
+
+Everything should feel handcrafted.
+
+------------------------------------------------
+CODE QUALITY
+------------------------------------------------
+
+Generate reusable React components.
+
+Use clean folder structure.
+
+Separate components.
+
+Separate hooks.
+
+Separate services.
+
+Separate utilities.
+
+Maintain readable code.
+
+Follow best practices.
+
+------------------------------------------------
+FINAL GOAL
+------------------------------------------------
+
+The finished application should be suitable for demonstrating in a national-level hackathon.
+
+It should combine:
+
+Modern UI/UX
+
+AI-powered invoice verification
+
+OCR-based extraction
+
+Vendor verification
+
+Duplicate invoice detection
+
+Payment validation
+
+GST validation
+
+Fraud scoring
+
+Explainable AI
+
+Voice assistant
+
+Chat assistant
+
+Real-time dashboard
+
+Interactive analytics
+
+Audit logs
+
+Role-based access
+
+Presentation mode
+
+Responsive design
+
+Accessibility
+
+Enterprise-level visual quality
+
+The application should look original, trustworthy, innovative, and professionally engineered.
+
+The overall experience should convince judges that this could be deployed as a real enterprise finance platform.
+
+
+
+------------------------------------------------
+AI CONFIDENCE METER
+------------------------------------------------
+
+Create an AI Confidence Meter.
+
+This should be separate from the Fraud Score.
+
+Fraud Score indicates risk.
+
+AI Confidence indicates how certain the AI is about its decision.
+
+Display both values together.
+
+Example
+
+Fraud Score: 84%
+
+AI Confidence: 96%
+
+Display confidence using a premium circular progress ring.
+
+Animated loading effect.
+
+Smooth percentage counting animation.
+
+Glassmorphism card design.
+
+------------------------------------------------
+
+CONFIDENCE LEVELS
+
+------------------------------------------------
+
+95% - 100%
+
+Very High Confidence
+
+Display Green.
+
+Show shield icon.
+
+Message:
+
+AI is highly confident in this assessment.
+
+------------------------------------------------
+
+80% - 94%
+
+High Confidence
+
+Display Blue.
+
+Show verification icon.
+
+Message:
+
+Strong evidence supports this result.
+
+------------------------------------------------
+
+60% - 79%
+
+Medium Confidence
+
+Display Yellow.
+
+Show review icon.
+
+Message:
+
+Additional verification recommended.
+
+------------------------------------------------
+
+Below 60%
+
+Low Confidence
+
+Display Red.
+
+Show warning icon.
+
+Message:
+
+Insufficient evidence. Manual review required.
+
+------------------------------------------------
+
+CONFIDENCE FACTORS
+
+------------------------------------------------
+
+Display factors contributing to confidence.
+
+Vendor Verification
+
+GST Validation
+
+Payment Validation
+
+Invoice Completeness
+
+Duplicate Detection
+
+Historical Data Match
+
+Timestamp Verification
+
+Bank Account Verification
+
+Display percentage contribution.
+
+Example
+
+Vendor Verification
+100%
+
+GST Validation
+95%
+
+Payment Verification
+98%
+
+Historical Match
+92%
+
+------------------------------------------------
+
+CONFIDENCE EXPLANATION PANEL
+
+------------------------------------------------
+
+Add a section called
+
+Why This Confidence Score?
+
+Example
+
+AI Confidence: 96%
+
+Reason:
+
+Vendor exists in verified database.
+
+GST details matched successfully.
+
+Payment account verified.
+
+Invoice format valid.
+
+Historical vendor behavior consistent.
+
+No missing information detected.
+
+------------------------------------------------
+
+VISUALIZATION
+
+------------------------------------------------
+
+Display a futuristic confidence gauge.
+
+Circular meter.
+
+Animated glow effect.
+
+Smooth needle movement.
+
+Confidence percentage displayed at center.
+
+Display status label:
+
+Very High Confidence
+
+High Confidence
+
+Medium Confidence
+
+Low Confidence
+
+------------------------------------------------
+
+DASHBOARD CARD
+
+------------------------------------------------
+
+Create a dedicated dashboard card.
+
+Average AI Confidence
+
+Display today's average confidence score.
+
+Example
+
+96.4%
+
+Trend indicator.
+
+Upward and downward arrows.
+
+------------------------------------------------
+
+CHATBOT INTEGRATION
+
+------------------------------------------------
+
+If user asks:
+
+Why is the AI confident?
+
+Assistant should explain.
+
+Example:
+
+The AI confidence is 96% because all vendor details, GST information, timestamps, and payment records were successfully verified with no inconsistencies detected.
+
+------------------------------------------------
+
+VOICE ASSISTANT INTEGRATION
+
+------------------------------------------------
+
+If user asks:
+
+What is the confidence level?
+
+Assistant should reply:
+
+The AI confidence level for this invoice is 96 percent. All critical validation checks passed successfully.
+
+------------------------------------------------
+
+DESIGN REQUIREMENTS
+
+------------------------------------------------
+
+This feature should look premium.
+
+Enterprise grade.
+
+Suitable for financial institutions.
+
+Use elegant animations.
+
+Use subtle glow effects.
+
+Avoid excessive colors.
+
+The confidence meter should immediately attract the attention of judges during demonstrations.
