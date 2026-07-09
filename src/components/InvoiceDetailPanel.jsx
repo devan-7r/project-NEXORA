@@ -5,8 +5,9 @@ import {
 } from "lucide-react";
 import { exportInvoiceToPDF, exportToCSV, exportToJSON, exportToExcel } from "../utils/exportHelper";
 import confetti from "canvas-confetti";
+import { detectFraud } from "../utils/fraudChecker";
 
-export default function InvoiceDetailPanel({ invoice, onClose, onUpdateInvoiceStatus, onBlacklistVendor }) {
+export default function InvoiceDetailPanel({ invoice, invoices = [], vendors = [], onClose, onUpdateInvoiceStatus, onBlacklistVendor }) {
   const [collapsedCards, setCollapsedCards] = useState({
     vendorInfo: false,
     invoiceInfo: false,
@@ -38,102 +39,23 @@ export default function InvoiceDetailPanel({ invoice, onClose, onUpdateInvoiceSt
     setSandboxDomainMatch(isHighRisk ? false : true);
   }, [invoice]);
 
-  // Recalculates risk indicators based on sandbox controls
+  // Recalculates risk indicators based on sandbox controls using the rules engine
   const recalculateAIAnalysis = (amount, gstActive, bankMatch, uploadHour, domainMatch) => {
-    let score = 10; // Base risk
-    let confidence = 98; // Base confidence
-    const factors = {
-      vendorVerification: 100,
-      gstValidation: 100,
-      paymentVerification: 100,
-      historicalMatch: 100,
-      duplicateDetection: invoice.confidenceFactors?.duplicateDetection || 95,
-      timestampVerification: 100,
-      completeness: 98
-    };
-    const explanations = [];
-    const recommendations = [];
-
-    const historicalAvg = 450000;
-    const ratio = amount / historicalAvg;
-    if (ratio > 3) {
-      score += 35;
-      factors.historicalMatch = 20;
-      explanations.push(`Invoice amount (₹${amount.toLocaleString()}) is ${(ratio * 100).toFixed(0)}% above the vendor's historical average of ₹${historicalAvg.toLocaleString()}.`);
-      recommendations.push("Request secondary executive authorization for high-value outliers.");
-    } else if (ratio > 1.5) {
-      score += 15;
-      factors.historicalMatch = 65;
-      explanations.push(`Invoice amount is moderately elevated compared to average.`);
-    }
-
-    if (!gstActive) {
-      score += 20;
-      confidence -= 15;
-      factors.gstValidation = 10;
-      explanations.push("Vendor registration has been inactive in the GST registry for 18 months.");
-      recommendations.push("Verify GSTIN status directly on the government GST portal.");
-    }
-
-    if (!bankMatch) {
-      score += 25;
-      confidence -= 20;
-      factors.paymentVerification = 20;
-      explanations.push("Mismatched beneficiary details detected: Bank account number does not match historical records.");
-      recommendations.push("Conduct verbal vendor bank details verification via registered contacts.");
-    }
-
-    if (uploadHour >= 0 && uploadHour <= 5) {
-      score += 10;
-      factors.timestampVerification = 30;
-      explanations.push(`Invoice uploaded outside business hours at ${uploadHour}:15 AM.`);
-      recommendations.push("Inspect firewall logs for anomalous server-to-server submissions.");
-    }
-
-    if (!domainMatch) {
-      score += 15;
-      confidence -= 15;
-      factors.vendorVerification = 35;
-      explanations.push("Spoofed email domain: Submitted from unverified vendor extension domain.");
-      recommendations.push("Check domain registration age and mail transfer agent headers.");
-    }
-
-    score = Math.min(Math.max(score, 5), 98);
-    confidence = Math.min(Math.max(confidence, 40), 98);
-
-    let riskLevel = "SAFE";
-    if (score >= 70) riskLevel = "HIGH RISK";
-    else if (score >= 35) riskLevel = "REVIEW";
-
-    let confidenceStatus = "Low Confidence";
-    if (confidence >= 95) confidenceStatus = "Very High Confidence";
-    else if (confidence >= 80) confidenceStatus = "High Confidence";
-    else if (confidence >= 60) confidenceStatus = "Medium Confidence";
-
-    let finalExplanation = "All parameters analyzed. ";
-    if (explanations.length > 0) {
-      finalExplanation = explanations.join(" ");
-    } else {
-      finalExplanation = "All validation checks passed. No anomalies detected in bank routing, GSTIN registrations, upload timestamps, or amount average.";
-    }
-
-    if (recommendations.length === 0) {
-      recommendations.push("Release payment for standard straight-through invoice processing.");
-    }
-
-    return {
+    const mock = {
       ...invoice,
-      amount,
-      taxAmount: Math.round(amount * 0.18),
-      grandTotal: Math.round(amount * 1.18),
-      fraudScore: score,
-      riskLevel,
-      aiConfidence: confidence,
-      confidenceStatus,
-      confidenceFactors: factors,
-      aiExplanation: finalExplanation,
-      aiRecommendations: recommendations
+      amount: parseFloat(amount),
+      taxAmount: Math.round(parseFloat(amount) * 0.18),
+      grandTotal: Math.round(parseFloat(amount) * 1.18),
+      gstNumber: gstActive ? invoice.gstNumber : "INVALID_GST_ANOMALY",
+      bankAccount: bankMatch ? invoice.bankAccount : "99999999999_MISMATCH",
+      timestamp: new Date(new Date(invoice.timestamp || Date.now()).setHours(uploadHour)).toISOString(),
+      email: domainMatch ? invoice.email : "spoofed@domain-sec.org",
+      ocrMismatch: !bankMatch || !gstActive,
+      hasSignature: invoice.hasSignature !== undefined ? invoice.hasSignature : true,
+      hasStamp: invoice.hasStamp !== undefined ? invoice.hasStamp : true
     };
+    
+    return detectFraud(mock, invoices, vendors);
   };
 
   const simulatedInvoice = recalculateAIAnalysis(
@@ -231,7 +153,7 @@ export default function InvoiceDetailPanel({ invoice, onClose, onUpdateInvoiceSt
                 className={`speedometer-fill`} 
                 style={{ 
                   transform: `rotate(${needleRotation}deg)`,
-                  borderTopColor: simulatedInvoice.riskLevel === "SAFE" ? "#10b981" : simulatedInvoice.riskLevel === "REVIEW" ? "#f59e0b" : "#ef4444"
+                  borderTopColor: simulatedInvoice.riskLevel === "SAFE" ? "#10b981" : simulatedInvoice.riskLevel === "REVIEW" ? "#f59e0b" : simulatedInvoice.riskLevel === "SUSPICIOUS" ? "#f97316" : "#ef4444"
                 }} 
               />
               <div className="speedometer-needle" style={{ transform: `rotate(${needleRotation}deg)` }} />
@@ -246,25 +168,31 @@ export default function InvoiceDetailPanel({ invoice, onClose, onUpdateInvoiceSt
                   ? "badge-risk-safe" 
                   : simulatedInvoice.riskLevel === "REVIEW" 
                   ? "badge-risk-review" 
+                  : simulatedInvoice.riskLevel === "SUSPICIOUS" 
+                  ? "badge-risk-suspicious" 
                   : "badge-risk-high"
               }`}>
-                {simulatedInvoice.riskLevel}
+                {simulatedInvoice.badgeText || simulatedInvoice.riskLevel}
               </span>
             </div>
 
-            {/* Indicator three-light strip */}
-            <div className="flex gap-3 mt-4 border border-white/5 bg-black/40 px-4 py-2 rounded-full">
-              <div className="flex items-center gap-1.5 text-[9px] font-bold text-gray-400">
-                <span className={`w-2.5 h-2.5 rounded-full ${simulatedInvoice.riskLevel === "SAFE" ? "bg-emerald-500 shadow-[0_0_8px_#10b981] animate-pulse" : "bg-emerald-950"}`} />
-                <span>SAFE</span>
+            {/* Indicator four-light strip */}
+            <div className="flex gap-3 mt-4 border border-white/5 bg-black/40 px-3.5 py-2 rounded-full">
+              <div className="flex items-center gap-1 text-[9px] font-bold text-gray-400">
+                <span className={`w-2 h-2 rounded-full ${simulatedInvoice.riskLevel === "SAFE" ? "bg-emerald-500 shadow-[0_0_8px_#10b981] animate-pulse" : "bg-emerald-950"}`} />
+                <span>VERIFIED</span>
               </div>
-              <div className="flex items-center gap-1.5 text-[9px] font-bold text-gray-400">
-                <span className={`w-2.5 h-2.5 rounded-full ${simulatedInvoice.riskLevel === "REVIEW" ? "bg-amber-500 shadow-[0_0_8px_#f59e0b] animate-pulse" : "bg-amber-950"}`} />
+              <div className="flex items-center gap-1 text-[9px] font-bold text-gray-400">
+                <span className={`w-2 h-2 rounded-full ${simulatedInvoice.riskLevel === "REVIEW" ? "bg-yellow-500 shadow-[0_0_8px_#f59e0b] animate-pulse" : "bg-yellow-950"}`} />
                 <span>REVIEW</span>
               </div>
-              <div className="flex items-center gap-1.5 text-[9px] font-bold text-gray-400">
-                <span className={`w-2.5 h-2.5 rounded-full ${simulatedInvoice.riskLevel === "HIGH RISK" ? "bg-red-500 shadow-[0_0_8px_#ef4444] animate-pulse" : "bg-red-950"}`} />
-                <span>RISK</span>
+              <div className="flex items-center gap-1 text-[9px] font-bold text-gray-400">
+                <span className={`w-2 h-2 rounded-full ${simulatedInvoice.riskLevel === "SUSPICIOUS" ? "bg-orange-500 shadow-[0_0_8px_#f97316] animate-pulse" : "bg-orange-950"}`} />
+                <span>SUSPICIOUS</span>
+              </div>
+              <div className="flex items-center gap-1 text-[9px] font-bold text-gray-400">
+                <span className={`w-2 h-2 rounded-full ${simulatedInvoice.riskLevel === "HIGH RISK" ? "bg-red-500 shadow-[0_0_8px_#ef4444] animate-pulse" : "bg-red-950"}`} />
+                <span>HIGH RISK</span>
               </div>
             </div>
           </div>

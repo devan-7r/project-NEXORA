@@ -1,12 +1,17 @@
-import React, { useState, useEffect } from "react";
-import { Shield, Mail, Lock, CheckCircle2, ArrowRight, Server, Terminal, Network, ShieldCheck } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { Shield, Mail, Lock, CheckCircle2, ArrowRight, Server, Terminal, Network, ShieldCheck, User } from "lucide-react";
 
 export default function Login({ onLoginSuccess }) {
+  // Ref to prevent duplicate handshake triggers (freezing)
+  const isConnectingRef = useRef(false);
+
   // Login animation state: 'idle' | 'loading' | 'scanning' | 'success'
   const [loginState, setLoginState] = useState("idle");
   const [email, setEmail] = useState("admin@fraudshield.ai");
   const [password, setPassword] = useState("password123");
   const [rememberMe, setRememberMe] = useState(true);
+  const [userName, setUserName] = useState("Devan Malhotra");
+  const [errorMsg, setErrorMsg] = useState("");
 
   // Live telemetry metrics
   const [cyberHash, setCyberHash] = useState("0x7f4e912b48ac");
@@ -111,16 +116,32 @@ export default function Login({ onLoginSuccess }) {
 
   const handleLoginSubmit = (e) => {
     e.preventDefault();
-    if (!email || !password) return;
+    if (!userName.trim()) {
+      setErrorMsg("Please enter your name.");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setErrorMsg("Please enter a valid institutional email address.");
+      return;
+    }
+    if (password.length < 6) {
+      setErrorMsg("Secure Access Key must be at least 6 characters.");
+      return;
+    }
 
+    setErrorMsg("");
     triggerHandshakeSequence();
   };
 
   const handleGuestAccess = () => {
+    setErrorMsg("");
     triggerHandshakeSequence();
   };
 
   const triggerHandshakeSequence = () => {
+    if (isConnectingRef.current) return;
+    isConnectingRef.current = true;
     setLoginState("loading");
     setHandshakeSteps([
       { id: 1, label: "DNS Resolve & SSL Handshake", status: "active" },
@@ -135,14 +156,14 @@ export default function Login({ onLoginSuccess }) {
         prev.map(s => s.id === 1 ? { ...s, status: "success" } : s.id === 2 ? { ...s, status: "active" } : s)
       );
       setLoginState("scanning");
-    }, 1000);
+    }, 800);
 
     // Step 2 Complete -> Step 3 Active
     setTimeout(() => {
       setHandshakeSteps(prev => 
         prev.map(s => s.id === 2 ? { ...s, status: "success" } : s.id === 3 ? { ...s, status: "active" } : s)
       );
-    }, 2000);
+    }, 1600);
 
     // Step 3 Complete -> Step 4 Active
     setTimeout(() => {
@@ -150,21 +171,21 @@ export default function Login({ onLoginSuccess }) {
         prev.map(s => s.id === 3 ? { ...s, status: "success" } : s.id === 4 ? { ...s, status: "active" } : s)
       );
       setLoginState("success");
-    }, 2800);
+    }, 2400);
 
     // Sequence Success -> Callback
     setTimeout(() => {
       setHandshakeSteps(prev => prev.map(s => ({ ...s, status: "success" })));
-      onLoginSuccess();
-    }, 3600);
+      onLoginSuccess(userName || "Devan Malhotra");
+    }, 3000);
   };
 
   return (
     <div className="min-h-screen w-full bg-[#060709] flex flex-col md:flex-row text-white overflow-hidden relative">
       
-      {/* LEFT SIDE: CREATIVE SCANNING SIMULATION */}
+      {/* LEFT SIDE: CREATIVE SCANNING SIMULATION (Hidden on Mobile for Centered Form UX) */}
       <div 
-        className="w-full md:w-1/2 flex flex-col justify-between p-8 md:p-12 bg-slate-950/40 border-r border-white/5 relative z-10"
+        className="hidden md:flex w-full md:w-1/2 flex-col justify-between p-8 md:p-12 bg-slate-950/40 border-r border-white/5 relative z-10"
         style={{
           backgroundImage: "radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 60%)"
         }}
@@ -328,9 +349,9 @@ export default function Login({ onLoginSuccess }) {
         </div>
       </div>
 
-      {/* RIGHT SIDE: GLASSMORPHIC CREDENTIAL CARD */}
+      {/* RIGHT SIDE: GLASSMORPHIC CREDENTIAL CARD (Centered Vertically and Horizontally) */}
       <div 
-        className="w-full md:w-1/2 flex items-center justify-center p-8 md:p-12 relative z-10"
+        className="w-full md:w-1/2 min-h-screen flex items-center justify-center p-4 sm:p-8 md:p-12 relative z-10"
         style={{
           backgroundImage: "radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.04) 0%, transparent 60%)"
         }}
@@ -351,11 +372,37 @@ export default function Login({ onLoginSuccess }) {
           {loginState === "idle" && (
             <div className="animate-fade-in">
               <h2 className="text-2xl font-bold tracking-tight mb-2 text-white">Access Secure Terminal</h2>
-              <p className="text-gray-400 text-xs mb-8 leading-relaxed">
+              <p className="text-gray-400 text-xs mb-6 leading-relaxed">
                 Connect your business ledger API or input organization credentials.
               </p>
 
-              <form onSubmit={handleLoginSubmit} className="space-y-5">
+              {errorMsg && (
+                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-xs text-red-400 mb-4 animate-pulse">
+                  {errorMsg}
+                </div>
+              )}
+
+              <form onSubmit={handleLoginSubmit} className="space-y-4">
+                {/* Auditor Name field */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest" htmlFor="name-input">
+                    Auditor Name
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input 
+                      id="name-input"
+                      type="text"
+                      value={userName}
+                      onChange={(e) => setUserName(e.target.value)}
+                      placeholder="e.g. Devan Malhotra"
+                      className="input-premium w-full text-sm bg-black/40 border-white/5 focus:border-blue-500/50"
+                      style={{ paddingLeft: "2.75rem" }}
+                      required
+                    />
+                  </div>
+                </div>
+
                 {/* Email field */}
                 <div className="space-y-1.5">
                   <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest" htmlFor="email-input">
@@ -369,7 +416,8 @@ export default function Login({ onLoginSuccess }) {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="e.g. auditor@organization.com"
-                      className="input-premium w-full pl-11 text-sm bg-black/40 border-white/5 focus:border-blue-500/50"
+                      className="input-premium w-full text-sm bg-black/40 border-white/5 focus:border-blue-500/50"
+                      style={{ paddingLeft: "2.75rem" }}
                       required
                     />
                   </div>
@@ -391,7 +439,8 @@ export default function Login({ onLoginSuccess }) {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••••••"
-                      className="input-premium w-full pl-11 text-sm bg-black/40 border-white/5 focus:border-blue-500/50"
+                      className="input-premium w-full text-sm bg-black/40 border-white/5 focus:border-blue-500/50"
+                      style={{ paddingLeft: "2.75rem" }}
                       required
                     />
                   </div>
@@ -415,7 +464,7 @@ export default function Login({ onLoginSuccess }) {
                 {/* Login Button */}
                 <button 
                   type="submit" 
-                  className="btn-premium btn-primary w-full py-3 text-xs justify-center rounded-lg font-bold uppercase tracking-wider mt-6 gap-2 shadow-[0_4px_20px_rgba(37,99,235,0.2)]"
+                  className="btn-premium btn-primary w-full py-3 text-xs justify-center rounded-lg font-bold uppercase tracking-wider mt-4 gap-2 shadow-[0_4px_20px_rgba(37,99,235,0.2)]"
                 >
                   Authorize Connection
                   <ArrowRight className="w-3.5 h-3.5" />

@@ -55,7 +55,7 @@ function TrustRing({ score, size = 48, stroke = 5 }) {
   );
 }
 
-export default function DashboardView({ invoices, vendors, auditLogs, onOpenInvoice }) {
+export default function DashboardView({ invoices, vendors, auditLogs, onOpenInvoice, currentUser }) {
   const [selectedDuration, setSelectedDuration] = useState("Daily");
   const [pulse, setPulse] = useState(false);
 
@@ -106,7 +106,7 @@ export default function DashboardView({ invoices, vendors, auditLogs, onOpenInvo
         <div>
           <h2 className="text-xl font-bold flex items-center gap-2 text-white">
             <Sparkles className="w-5 h-5 text-blue-400 animate-pulse" />
-            FraudShield AI Command Center
+            Welcome, {currentUser?.name || "Auditor"}
           </h2>
           <p className="text-gray-400 text-xs mt-1 max-w-xl">
             Real-time neural anomaly detection active. 

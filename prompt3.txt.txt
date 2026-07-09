@@ -1,0 +1,110 @@
+Prompt: Move Search History to User Profile and Integrate Database
+
+I want to redesign my AI Invoice Fraud Detection website to provide a more professional user experience.
+
+Database Integration
+
+Integrate a real cloud database (preferably Supabase/PostgreSQL) to store every uploaded invoice and its AI analysis.
+
+Whenever a user uploads an invoice:
+
+Save the original invoice.
+Save all OCR extracted fields.
+Save the AI fraud score.
+Save the risk level.
+Save the fraud category.
+Save the AI explanation.
+Save the recommendation.
+Save the upload date and time.
+
+All data should remain available even after the user refreshes or logs back into the website.
+
+Remove Search History from Left Sidebar
+
+Remove the current Search History section from the left sidebar completely.
+
+The left sidebar should only contain:
+
+Dashboard
+Upload Invoice
+Fraud Analysis
+Reports
+Settings (if available)
+
+Do not display Search History in the sidebar.
+
+Add User Profile at the Top Right
+
+Add a professional user profile icon in the top-right corner of the navigation bar.
+
+When the user clicks the profile icon, open a dropdown menu containing:
+
+👤 My Profile
+📂 My Invoice History
+📊 Analysis History
+⚙️ Account Settings
+🚪 Logout
+My Invoice History
+
+When the user clicks My Invoice History, open a dedicated page or modal showing all invoices uploaded by that user from the database.
+
+Each history card should display:
+
+Invoice Number
+Supplier Name
+Invoice Amount
+Upload Date & Time
+Fraud Score
+Risk Level (Green, Yellow, Red)
+Fraud Category
+Analysis Status
+
+Display the newest invoices first.
+
+Invoice Details
+
+When the user clicks any invoice in the history, open a detailed report showing:
+
+Supplier Information
+Invoice Details
+OCR Extracted Data
+AI Fraud Score
+Risk Level
+Fraud Category
+Confidence Score
+AI Explanation
+Recommendation
+Uploaded Invoice Preview (PDF/Image)
+Profile Dashboard
+
+Inside the profile page, show user statistics such as:
+
+Total Invoices Uploaded
+Genuine Invoices
+Fraudulent Invoices
+Medium Risk Invoices
+High Risk Invoices
+Last Upload Date
+
+Display these using attractive statistic cards.
+
+Search Inside History
+
+Instead of having Search History in the sidebar, add a search bar inside My Invoice History so users can search their stored invoices by:
+
+Invoice Number
+Supplier Name
+Invoice Date
+Risk Level
+Fraud Category
+User Experience
+Use smooth animations when opening the profile dropdown.
+Make the profile menu modern with rounded corners and subtle shadows.
+Use professional icons.
+Ensure the layout is fully responsive for desktop, tablet, and mobile.
+Keep the interface clean and uncluttered.
+
+
+Final Goal
+
+Implement multi-user authentication and data isolation. Each registered user should have a private account and a unique User ID. Every uploaded invoice must be associated with the logged-in user's User ID. When users open "My Invoice History," they should only see invoices they have uploaded. Users must never be able to view, search, or access invoices belonging to other users. Duplicate invoice detection should compare invoices only within the logged-in user's dataset (or within the same organization if company-based accounts are enabled). Use Row-Level Security (RLS) or equivalent backend authorization to ensure complete data privacy. Administrators may have a separate dashboard with appropriate permissions, but regular users should only access their own records.

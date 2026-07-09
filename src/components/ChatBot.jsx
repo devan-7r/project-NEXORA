@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { MessageSquare, Mic, Send, X, Bot, User, Volume2, Sparkles } from "lucide-react";
+import { MessageSquare, Mic, Send, X, Bot, User, Volume2, Sparkles, MicOff } from "lucide-react";
 import { processChatQuery } from "../utils/demoData";
 
 export default function ChatBot({ 
@@ -7,7 +7,8 @@ export default function ChatBot({
   vendors, 
   setActiveTab, 
   onOpenInvoice, 
-  voiceSettings 
+  voiceSettings,
+  fullScreen = false
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -98,55 +99,50 @@ export default function ChatBot({
         text: response.text,
         timestamp: new Date()
       };
-      
+
       setMessages(prev => [...prev, botMsg]);
       setIsTyping(false);
 
-      // Perform speech synthesis feedback if voice is enabled in Settings
+      // Speak answer aloud if synthesizer is enabled
       if (voiceSettings.enabled) {
         speakResponse(response.text);
       }
 
-      // Execute copilot command hooks (e.g. routing active tabs or opening invoice panels)
+      // Handle direct actions if parsed
       if (response.action) {
-        setTimeout(() => {
-          executeAssistantAction(response.action);
-        }, 1200);
+        handleActionRouting(response.action);
       }
-    }, 1500);
+    }, 1200);
   };
 
   const speakResponse = (text) => {
     if (!window.speechSynthesis) return;
-
-    // Clean markdown characters for cleaner speech output
-    const cleanText = text.replace(/[*#_]/g, "");
-    
-    // Stop any currently playing speech
     window.speechSynthesis.cancel();
     
+    // Clean text from markdown bold blocks
+    const cleanText = text.replace(/\*\*(.*?)\*\*/g, "$1");
+    
     const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.volume = parseFloat(voiceSettings.volume) || 1.0;
-    utterance.pitch = parseFloat(voiceSettings.pitch) || 1.0;
-    utterance.rate = parseFloat(voiceSettings.rate) || 1.0;
+    utterance.volume = voiceSettings.volume || 1.0;
+    utterance.pitch = voiceSettings.pitch || 1.0;
+    utterance.rate = voiceSettings.rate || 1.0;
     
     window.speechSynthesis.speak(utterance);
   };
 
-  const executeAssistantAction = (action) => {
+  const handleActionRouting = (action) => {
     switch (action.type) {
-      case "VIEW_INVOICE":
+      case "OPEN_INVOICE":
         onOpenInvoice(action.invoiceNumber);
         break;
       case "GO_TO_TAB":
         setActiveTab(action.tab);
         break;
       case "FILTER_RISK":
-        setActiveTab("invoices");
-        // We will pass down filter cues if needed, handled globally
+        setActiveTab("history");
         break;
       case "FILTER_STATUS":
-        setActiveTab("invoices");
+        setActiveTab("history");
         break;
       default:
         break;
@@ -160,9 +156,163 @@ export default function ChatBot({
     "Why is the AI confident?"
   ];
 
+  // RENDER DEDICATED FULL SCREEN WORKSPACE
+  if (fullScreen) {
+    return (
+      <div 
+        className="w-full h-[calc(100vh-120px)] glass-panel shadow-[0_15px_50px_rgba(0,0,0,0.7)] border border-white/10 flex flex-col overflow-hidden animate-fade-in text-xs"
+        style={{
+          background: "rgba(10, 11, 13, 0.7)"
+        }}
+      >
+        {/* Header */}
+        <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/5">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+              <Bot className="w-5 h-5 text-blue-400" />
+            </div>
+            <div>
+              <span className="font-extrabold text-sm text-white tracking-wider">AI COPILOT WORKSPACE</span>
+              <span className="block text-[8px] text-emerald-400 font-semibold tracking-widest uppercase mt-0.5">Advanced ledger reasoning active</span>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-blue-400 animate-pulse" />
+          </div>
+        </div>
+
+        {/* Messages list */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+          {messages.map((m) => (
+            <div 
+              key={m.id}
+              className={`flex gap-3 max-w-[80%] ${m.sender === "user" ? "ml-auto flex-row-reverse" : "mr-auto"}`}
+            >
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs flex-shrink-0 border ${
+                m.sender === "user" 
+                  ? "bg-slate-800 border-white/10 text-white" 
+                  : "bg-blue-600/15 border-blue-500/35 text-blue-400"
+              }`}>
+                {m.sender === "user" ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+              </div>
+
+              <div>
+                <div className={`p-4 rounded-2xl text-xs leading-relaxed ${
+                  m.sender === "user" 
+                    ? "bg-blue-600 text-white rounded-tr-none shadow-[0_4px_15px_rgba(37,99,235,0.15)]" 
+                    : "bg-slate-900/40 border border-white/5 text-gray-250 rounded-tl-none"
+                }`}>
+                  {m.text.split("\n").map((line, idx) => (
+                    <p key={idx} className={idx > 0 ? "mt-2" : ""}>
+                      {line.replace(/\*\*(.*?)\*\*/g, "$1")}
+                    </p>
+                  ))}
+                </div>
+                
+                {m.sender === "bot" && window.speechSynthesis && (
+                  <button 
+                    onClick={() => speakResponse(m.text)} 
+                    className="p-1.5 text-gray-500 hover:text-white transition-colors mt-1 inline-flex items-center gap-1 text-[10px]"
+                    title="Speak Response"
+                  >
+                    <Volume2 className="w-3.5 h-3.5" />
+                    Read Aloud
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+
+          {isTyping && (
+            <div className="flex gap-3 max-w-[80%]">
+              <div className="w-8 h-8 rounded-full bg-blue-600/15 border border-blue-500/35 text-blue-400 flex items-center justify-center flex-shrink-0">
+                <Bot className="w-4 h-4" />
+              </div>
+              <div className="bg-slate-900/40 border border-white/5 p-3 rounded-2xl rounded-tl-none flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                <span className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                <span className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+              </div>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Quick recommendations */}
+        {messages.length === 1 && (
+          <div className="px-6 pb-4">
+            <span className="text-[10px] text-gray-500 uppercase font-semibold tracking-wider block mb-1.5">Suggested Queries</span>
+            <div className="flex flex-wrap gap-2">
+              {quickQuestions.map((q, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleSend(q)}
+                  className="text-[10px] bg-slate-900 border border-white/5 hover:border-white/20 text-gray-400 hover:text-white px-3 py-1.5 rounded-lg text-left transition-all"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Listening Waveform */}
+        {isListening && (
+          <div className="bg-slate-950/90 border-t border-white/5 p-4 flex items-center justify-between">
+            <span className="text-xs text-blue-400 font-semibold animate-pulse tracking-wide">Listening via voice...</span>
+            <div className="flex items-end justify-center gap-1 h-6">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="w-0.5 h-4 bg-blue-500 rounded animate-pulse" style={{ animationDelay: `${i * 0.15}s` }} />
+              ))}
+            </div>
+            <button 
+              onClick={handleVoiceListen}
+              className="text-[10px] uppercase font-bold tracking-wider px-3 py-1.5 bg-red-600 rounded text-white"
+            >
+              Stop
+            </button>
+          </div>
+        )}
+
+        {/* Input Panel */}
+        <div className="p-4 border-t border-white/5 bg-slate-950/60 flex gap-2">
+          <button
+            onClick={handleVoiceListen}
+            className={`p-2.5 rounded-lg border flex items-center justify-center transition-all ${
+              isListening 
+                ? "bg-red-600 border-red-500 text-white" 
+                : "border-white/5 text-gray-400 hover:text-white hover:bg-white/5"
+            }`}
+            title="Speak voice query"
+          >
+            {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+          </button>
+
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSend()}
+            placeholder="Ask about invoices, vendors, or reports..."
+            className="input-premium flex-1 py-2 text-xs bg-black/40 border-white/5 text-white"
+          />
+          
+          <button
+            onClick={() => handleSend()}
+            className="p-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center"
+          >
+            <Send className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // FLOATING MODAL
   return (
     <>
-      {/* Floating Assist Trigger Button (Bottom Right) */}
       <div className="fixed bottom-6 right-6 z-[90]">
         <button
           onClick={() => setIsOpen(!isOpen)}
@@ -174,13 +324,9 @@ export default function ChatBot({
           title="Ask FraudShield AI"
         >
           {isOpen ? <X className="w-6 h-6" /> : <MessageSquare className="w-6 h-6 animate-pulse" />}
-          
-          {/* Pulse ring indicator */}
           {!isOpen && (
             <span className="absolute inset-0 rounded-full border-2 border-blue-500/40 animate-ping pointer-events-none" />
           )}
-
-          {/* Hover Tooltip */}
           {!isOpen && (
             <div className="absolute right-14 bg-slate-900 border border-white/10 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl">
               Ask FraudShield AI
@@ -189,15 +335,13 @@ export default function ChatBot({
         </button>
       </div>
 
-      {/* Main chat slide panel drawer */}
       {isOpen && (
         <div 
-          className="fixed bottom-24 right-6 w-96 max-w-[calc(100vw-32px)] h-[500px] glass-panel shadow-[0_15px_50px_rgba(0,0,0,0.7)] border border-white/10 flex flex-col z-[90] overflow-hidden animate-slide-in-toast"
+          className="fixed bottom-24 right-6 w-96 max-w-[calc(100vw-32px)] h-[500px] glass-panel shadow-[0_15px_50px_rgba(0,0,0,0.7)] border border-white/10 flex flex-col z-[90] overflow-hidden animate-slide-in-toast text-xs"
           style={{
             background: "rgba(10, 11, 13, 0.95)"
           }}
         >
-          {/* Header */}
           <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/5">
             <div className="flex items-center gap-2">
               <Bot className="w-5 h-5 text-blue-400" />
@@ -206,13 +350,11 @@ export default function ChatBot({
                 <span className="block text-[8px] text-emerald-400 font-semibold tracking-wider uppercase">Secure Link Active</span>
               </div>
             </div>
-            
             <div className="flex items-center gap-1">
               <Sparkles className="w-4 h-4 text-blue-400 animate-pulse" />
             </div>
           </div>
 
-          {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.map((m) => (
               <div 
@@ -233,7 +375,6 @@ export default function ChatBot({
                       ? "bg-blue-600 text-white rounded-tr-none" 
                       : "bg-white/5 border border-white/5 text-gray-200 rounded-tl-none"
                   }`}>
-                    {/* Convert markdown lines back to visual bullets simply */}
                     {m.text.split("\n").map((line, idx) => (
                       <p key={idx} className={idx > 0 ? "mt-1.5" : ""}>
                         {line.replace(/\*\*(.*?)\*\*/g, "$1")}
@@ -241,7 +382,6 @@ export default function ChatBot({
                     ))}
                   </div>
                   
-                  {/* TTS speak button for bot replies */}
                   {m.sender === "bot" && window.speechSynthesis && (
                     <button 
                       onClick={() => speakResponse(m.text)} 
@@ -271,7 +411,6 @@ export default function ChatBot({
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Quick recommendations */}
           {messages.length === 1 && (
             <div className="px-4 pb-2">
               <span className="text-[10px] text-gray-500 uppercase font-semibold tracking-wider block mb-1.5">Suggested Queries</span>
@@ -289,20 +428,14 @@ export default function ChatBot({
             </div>
           )}
 
-          {/* Listening Overlay Waveform */}
           {isListening && (
             <div className="bg-slate-950/90 border-t border-white/5 p-3 flex items-center justify-between">
               <span className="text-xs text-blue-400 font-semibold animate-pulse tracking-wide">Listening via voice...</span>
-              
-              {/* Waveform graphic */}
-              <div className="waveform-container" style={{ height: "25px" }}>
-                <span className="waveform-bar" style={{ width: "2px" }} />
-                <span className="waveform-bar" style={{ width: "2px" }} />
-                <span className="waveform-bar" style={{ width: "2px" }} />
-                <span className="waveform-bar" style={{ width: "2px" }} />
-                <span className="waveform-bar" style={{ width: "2px" }} />
+              <div className="flex items-end justify-center gap-1 h-5">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="w-0.5 h-3 bg-blue-500 rounded animate-pulse" style={{ animationDelay: `${i * 0.1}s` }} />
+                ))}
               </div>
-
               <button 
                 onClick={handleVoiceListen}
                 className="text-xs px-2 py-1 bg-red-600 rounded text-white"
@@ -312,9 +445,7 @@ export default function ChatBot({
             </div>
           )}
 
-          {/* Input Panel */}
           <div className="p-3 border-t border-white/5 bg-white/5 flex gap-2">
-            {/* Voice microphone button */}
             <button
               onClick={handleVoiceListen}
               className={`p-2 rounded-lg border flex items-center justify-center transition-all ${

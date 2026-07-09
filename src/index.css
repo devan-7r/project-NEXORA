@@ -378,6 +378,12 @@ body {
   border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
+.badge-risk-suspicious {
+  background: rgba(249, 115, 22, 0.1);
+  color: #f97316;
+  border: 1px solid rgba(249, 115, 22, 0.2);
+}
+
 .badge-risk-high {
   background: rgba(239, 68, 68, 0.1);
   color: var(--color-red);

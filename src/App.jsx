@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { User, ArrowRight } from "lucide-react";
 import SplashScreen from "./components/SplashScreen";
 import Login from "./components/Login";
 import Onboarding from "./components/Onboarding";
@@ -6,14 +7,15 @@ import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import DashboardView from "./components/DashboardView";
 import InvoicesView from "./components/InvoicesView";
-import VendorDatabaseView from "./components/VendorDatabaseView";
-import AnalyticsView from "./components/AnalyticsView";
-import AuditLogsView from "./components/AuditLogsView";
-import AdminView from "./components/AdminView";
-import SettingsView from "./components/SettingsView";
-import HelpView from "./components/HelpView";
 import InvoiceDetailPanel from "./components/InvoiceDetailPanel";
 import ChatBot from "./components/ChatBot";
+import VoiceAssistantView from "./components/VoiceAssistantView";
+import AnalyticsView from "./components/AnalyticsView";
+import AuditLogsView from "./components/AuditLogsView";
+import VendorDatabaseView from "./components/VendorDatabaseView";
+import SettingsView from "./components/SettingsView";
+import HelpView from "./components/HelpView";
+import AdminView from "./components/AdminView";
 
 import { 
   INITIAL_INVOICES, 
@@ -27,6 +29,7 @@ export default function App() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
+  const [showPersonalizationModal, setShowPersonalizationModal] = useState(false);
   
   // Search & Drawer
   const [searchQuery, setSearchQuery] = useState("");
@@ -42,7 +45,7 @@ export default function App() {
   const [accessibility, setAccessibility] = useState({ highContrast: false, fontSize: "default", logoutTimer: "Never" });
   
   // Current session user details
-  const [currentUser, setCurrentUser] = useState({ name: "Devan Malhotra", role: "Admin" });
+  const [currentUser, setCurrentUser] = useState({ name: "Admin", role: "Admin" });
   const [presentationMode, setPresentationMode] = useState(false);
 
   // Notification Feed list
@@ -68,8 +71,12 @@ export default function App() {
   ]);
 
   // Check onboarding completion on app launch
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = (name) => {
+    if (name) {
+      setCurrentUser(prev => ({ ...prev, name }));
+    }
     setAppStep("app");
+    setShowPersonalizationModal(true);
     const completed = localStorage.getItem("fraudshield_onboarding_completed");
     if (!completed) {
       setShowOnboarding(true);
@@ -274,20 +281,48 @@ export default function App() {
                   vendors={vendors} 
                   auditLogs={auditLogs}
                   onOpenInvoice={(num) => setSelectedInvoiceNumber(num)}
+                  currentUser={currentUser}
                 />
               )}
-              {activeTab === "invoices" && (
+              {/* Invoices tab (previously 'search') */}
+              {(activeTab === "invoices" || activeTab === "search") && (
                 <InvoicesView 
                   invoices={invoices}
                   setInvoices={setInvoices}
                   onOpenInvoice={(num) => setSelectedInvoiceNumber(num)}
                   searchQuery={searchQuery}
                   setSearchQuery={setSearchQuery}
+                  mode="search"
+                  vendors={vendors}
                 />
               )}
-              {activeTab === "vendors" && (
+              {/* History kept for backward compat */}
+              {activeTab === "history" && (
+                <InvoicesView 
+                  invoices={invoices}
+                  setInvoices={setInvoices}
+                  onOpenInvoice={(num) => setSelectedInvoiceNumber(num)}
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  mode="history"
+                  vendors={vendors}
+                />
+              )}
+              {/* Fraud Reports: filter InvoicesView to high-risk only */}
+              {activeTab === "fraud-reports" && (
+                <InvoicesView 
+                  invoices={invoices}
+                  setInvoices={setInvoices}
+                  onOpenInvoice={(num) => setSelectedInvoiceNumber(num)}
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  mode="fraud"
+                  vendors={vendors}
+                />
+              )}
+              {activeTab === "vendor-database" && (
                 <VendorDatabaseView 
-                  vendors={vendors} 
+                  vendors={vendors}
                   setVendors={setVendors}
                   invoices={invoices}
                 />
@@ -301,44 +336,106 @@ export default function App() {
               {activeTab === "audit-logs" && (
                 <AuditLogsView 
                   auditLogs={auditLogs}
-                  onOpenInvoice={(num) => setSelectedInvoiceNumber(num)}
+                  currentUser={currentUser}
                 />
               )}
-              {activeTab === "admin" && (
-                <AdminView 
-                  currentUser={currentUser} 
-                  setCurrentUser={setCurrentUser}
+              {activeTab === "chatbot" && (
+                <ChatBot 
+                  invoices={invoices}
+                  vendors={vendors}
+                  setActiveTab={setActiveTab}
+                  onOpenInvoice={(num) => setSelectedInvoiceNumber(num)}
+                  voiceSettings={voiceSettings}
+                  fullScreen={true}
+                />
+              )}
+              {activeTab === "voice-assistant" && (
+                <VoiceAssistantView 
+                  invoices={invoices}
+                  voiceSettings={voiceSettings}
                 />
               )}
               {activeTab === "settings" && (
                 <SettingsView 
                   voiceSettings={voiceSettings}
                   setVoiceSettings={setVoiceSettings}
-                  accessibility={accessibility}
-                  setAccessibility={setAccessibility}
+                  currentUser={currentUser}
+                  setCurrentUser={setCurrentUser}
                 />
               )}
-              {activeTab === "help" && <HelpView />}
+              {activeTab === "help" && (
+                <HelpView />
+              )}
+              {activeTab === "admin" && (
+                <AdminView 
+                  invoices={invoices}
+                  vendors={vendors}
+                  setVendors={setVendors}
+                  setInvoices={setInvoices}
+                  auditLogs={auditLogs}
+                  currentUser={currentUser}
+                />
+              )}
             </main>
 
             {/* Chatbot Voice & Text Assistant */}
-            <ChatBot 
-              invoices={invoices}
-              vendors={vendors}
-              setActiveTab={setActiveTab}
-              onOpenInvoice={(num) => setSelectedInvoiceNumber(num)}
-              voiceSettings={voiceSettings}
-            />
+            {activeTab !== "chatbot" && (
+              <ChatBot 
+                invoices={invoices}
+                vendors={vendors}
+                setActiveTab={setActiveTab}
+                onOpenInvoice={(num) => setSelectedInvoiceNumber(num)}
+                voiceSettings={voiceSettings}
+              />
+            )}
 
             {/* Onboarding walk-through modal */}
             {showOnboarding && (
               <Onboarding onClose={() => setShowOnboarding(false)} />
             )}
 
+            {/* Personalization name prompt modal */}
+            {showPersonalizationModal && (
+              <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-[1000] p-4 animate-fade-in">
+                <div className="glass-panel w-full max-w-md p-8 relative flex flex-col items-center text-center shadow-[0_0_50px_rgba(59,130,246,0.15)] border border-white/10 animate-scale">
+                  <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-full mb-6">
+                    <User className="w-8 h-8 text-blue-400" />
+                  </div>
+                  <h2 className="text-xl font-bold text-white mb-2">Auditor Profile Activation</h2>
+                  <p className="text-gray-400 text-xs mb-6 leading-relaxed">
+                    Please confirm or enter your name to personalize your dashboard greetings and ledger audit logs.
+                  </p>
+                  <div className="w-full space-y-4">
+                    <input 
+                      type="text"
+                      value={currentUser.name}
+                      onChange={(e) => setCurrentUser(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="Auditor Name"
+                      className="input-premium w-full text-center text-sm bg-black/40 border-white/5 focus:border-blue-500/50"
+                      required
+                    />
+                    <button
+                      onClick={() => {
+                        if (currentUser.name.trim()) {
+                          setShowPersonalizationModal(false);
+                        }
+                      }}
+                      className="btn-premium btn-primary w-full py-3 text-xs justify-center rounded-lg font-bold uppercase tracking-wider mt-4 gap-2 shadow-[0_4px_20px_rgba(37,99,235,0.2)]"
+                    >
+                      Initialize Workspace
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Sliding detailed invoice drawer */}
             {activeInvoice && (
               <InvoiceDetailPanel 
                 invoice={activeInvoice}
+                invoices={invoices}
+                vendors={vendors}
                 onClose={() => setSelectedInvoiceNumber(null)}
                 onUpdateInvoiceStatus={handleUpdateInvoiceStatus}
                 onBlacklistVendor={handleBlacklistVendor}

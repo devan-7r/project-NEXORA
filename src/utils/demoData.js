@@ -573,6 +573,46 @@ export const SECURITY_CHECKS = [
 export const processChatQuery = (query, invoices, vendors) => {
   const q = query.toLowerCase().trim();
   
+  // Dynamic invoice lookup
+  const invoiceMatch = q.match(/inv-2026-\d+/);
+  if (invoiceMatch) {
+    const invNum = invoiceMatch[0].toUpperCase();
+    const inv = invoices.find(i => i.invoiceNumber === invNum);
+    if (inv) {
+      const riskStatus = inv.riskLevel === "SAFE" ? "Verified" : inv.riskLevel === "REVIEW" ? "Needs Review" : inv.riskLevel === "SUSPICIOUS" ? "Suspicious" : "High Risk";
+      let text = `Invoice **${inv.invoiceNumber}** from **${inv.vendorName}** is categorized as **${riskStatus}** (Fraud Score: **${inv.fraudScore}%**, AI Confidence: **${inv.aiConfidence}%**).\n\n`;
+      
+      if (inv.riskLevel === "SAFE") {
+        text += `**Reasoning:** The invoice matches our standard validation filters. GST registration is verified, bank details match, and metadata timestamps are valid. No suspicious alterations were detected.`;
+      } else {
+        text += `**Detected Flags:**\n`;
+        if (inv.aiExplanation) {
+          const sentences = inv.aiExplanation.split(/\. /).filter(s => s.trim().length > 0);
+          text += sentences.map((s, idx) => `${idx + 1}. ${s.trim().replace(/\.$/, "")}.`).join("\n");
+        } else {
+          text += `- Multiple risk indicators triggered during automated analysis (including format or domain checks).`;
+        }
+      }
+      
+      if (inv.aiRecommendations && inv.aiRecommendations.length > 0) {
+        text += `\n\n**Suggested Action:**\n- ` + inv.aiRecommendations.join("\n- ");
+      }
+      
+      return {
+        text,
+        action: { type: "OPEN_INVOICE", invoiceNumber: inv.invoiceNumber }
+      };
+    }
+  }
+
+  // General prevention tips
+  if (q.includes("prevent") || q.includes("tips") || q.includes("how to avoid") || q.includes("prevention")) {
+    return {
+      text: `**Invoice Fraud Prevention Guidelines:**\n1. **Out-of-band verification:** Always call the vendor using a registered contact number to verify bank account changes.\n2. **GSTIN Lookup:** Cross-reference GST credentials on the official government portal.\n3. **PO Matching:** Match invoices against original Purchase Orders and lock them once paid to prevent duplicate PO draw scams.\n4. **Forensic Metadata checks:** Scan documents for editing software footprints and font modifications.\n5. **Audit Trails:** Ensure every validation has two-person authorization.`,
+      action: null
+    };
+  }
+
   if (q.includes("inv-2026-001")) {
     const inv = invoices.find(i => i.invoiceNumber === "INV-2026-001") || invoices[0];
     return {
