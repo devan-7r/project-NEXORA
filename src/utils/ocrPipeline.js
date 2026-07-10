@@ -118,9 +118,10 @@ export function parseInvoiceFields(text, ocrConfidence = 100) {
       dueDate: "Not Detected",
       buyerName: "Not Detected",
       gstNumber: "Not Detected",
-      amount: "Not Detected",
-      taxAmount: "Not Detected",
-      grandTotal: "Not Detected",
+      amount: 0,
+      taxAmount: 0,
+      grandTotal: 0,
+      grandTotalDisplay: "Could not extract — OCR confidence too low",
       poNumber: "Not Detected",
       bankAccount: "Not Detected",
       ifscCode: "Not Detected",
@@ -141,7 +142,6 @@ export function parseInvoiceFields(text, ocrConfidence = 100) {
   if (vendorMatch && vendorMatch[1].trim().length > 2) {
     vendorName = vendorMatch[1].replace(/[^a-zA-Z0-9\s.,&()]/g, "").trim();
   } else {
-    // Check lines for typical company suffix
     const lines = text.split("\n");
     for (const line of lines) {
       if (line.match(/(?:pvt|ltd|inc|corp|co\.|systems|solutions|enterprises|technologies|logistics|traders|global|consultancy)\b/i)) {
@@ -164,18 +164,14 @@ export function parseInvoiceFields(text, ocrConfidence = 100) {
     if (generalInv) invoiceNumber = generalInv[0].toUpperCase();
   }
 
-  // 3. Dates (Invoice Date & Due Date)
+  // 3. Dates
   let invoiceDate = "Not Detected";
   const invDateMatch = text.match(/(?:invoice\s*date|date\s*of\s*issue|issue\s*date|dated)\s*[:#-]?\s*([0-9a-z\/\s,-]+)/i);
-  if (invDateMatch) {
-    invoiceDate = cleanDateStr(invDateMatch[1]);
-  }
+  if (invDateMatch) invoiceDate = cleanDateStr(invDateMatch[1]);
 
   let dueDate = "Not Detected";
   const dueDateMatch = text.match(/(?:due\s*date|payment\s*due|due\s*on)\s*[:#-]?\s*([0-9a-z\/\s,-]+)/i);
-  if (dueDateMatch) {
-    dueDate = cleanDateStr(dueDateMatch[1]);
-  }
+  if (dueDateMatch) dueDate = cleanDateStr(dueDateMatch[1]);
 
   // 4. Buyer Name
   let buyerName = "Not Detected";
@@ -186,34 +182,26 @@ export function parseInvoiceFields(text, ocrConfidence = 100) {
     buyerName = "Enterprise Corp India";
   }
 
-  // 5. GST Number (15 Characters)
+  // 5. GST Number
   let gstNumber = "Not Detected";
   const gstMatch = text.match(/\b([0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[0-9A-Z]{1}Z[0-9A-Z]{1})\b/i);
-  if (gstMatch) {
-    gstNumber = gstMatch[0].toUpperCase();
-  }
+  if (gstMatch) gstNumber = gstMatch[0].toUpperCase();
 
-  // 6. Bank Details (A/C, IFSC)
+  // 6. Bank Details
   let bankAccount = "Not Detected";
   const bankMatch = text.match(/(?:bank\s*a\/c|account\s*num(?:ber)?|a\/c\s*(?:no|number)|bank\s*account)\s*[:#-]?\s*([0-9]{9,18})/i);
-  if (bankMatch) {
-    bankAccount = bankMatch[1].trim();
-  }
+  if (bankMatch) bankAccount = bankMatch[1].trim();
 
   let ifscCode = "Not Detected";
   const ifscMatch = text.match(/\b([A-Z]{4}0[A-Z0-9]{6})\b/i);
-  if (ifscMatch) {
-    ifscCode = ifscMatch[0].toUpperCase();
-  }
+  if (ifscMatch) ifscCode = ifscMatch[0].toUpperCase();
 
   // 7. PO Number
   let poNumber = "Not Detected";
   const poMatch = text.match(/(?:po\s*num(?:ber)?|p\.o\.\s*#?|purchase\s*order(?:\s*#)?)\s*[:#-]?\s*([a-z0-9-]+)/i);
-  if (poMatch) {
-    poNumber = poMatch[1].trim().toUpperCase();
-  }
+  if (poMatch) poNumber = poMatch[1].trim().toUpperCase();
 
-  // 8. Currency
+  // 8. Currency detection
   let currency = "INR";
   if (text.includes("$") || lowercaseText.includes("usd") || lowercaseText.includes("dollar")) {
     currency = "USD";
@@ -223,55 +211,173 @@ export function parseInvoiceFields(text, ocrConfidence = 100) {
     currency = "INR";
   }
 
-  // 9. Amounts (Subtotal, Tax, Grand Total)
-  let grandTotal = "Not Detected";
-  const totalMatch = text.match(/(?:grand\s*total|total\s*amount|total\s*due|payable|amount\s*due|invoice\s*total)\s*[:#-]?\s*(?:rs\.?|inr|₹|\$)?\s*([0-9,]+(?:\.[0-9]{2})?)/i);
-  if (totalMatch) {
-    grandTotal = totalMatch[1].replace(/,/g, "").trim();
+  // ─────────────────────────────────────────────────────────────────────────
+  // 9. AMOUNT EXTRACTION — Priority-based multi-pass approach
+  //    Priority 1: Exact label match for final payable amount
+  //    Priority 2: Largest monetary value near total-like labels
+  //    Priority 3: Largest standalone monetary value in document
+  // ─────────────────────────────────────────────────────────────────────────
+
+  // Currency prefix pattern
+  const currPfx = /(?:rs\.?\s*|inr\s*|₹\s*|\$\s*|€\s*)?/i;
+  // Number pattern: handles 1,00,000.00 / 100000.00 / 1,00,000
+  const numPat = /([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]+(?:\.[0-9]{1,2})?)/;
+
+  /** Parse a matched number string to float, removing commas */
+  const parseAmt = (s) => {
+    if (!s) return NaN;
+    return parseFloat(s.replace(/,/g, ""));
+  };
+
+  /** Try to match a label followed by an optional currency symbol and a number */
+  const matchLabel = (labelPattern) => {
+    const re = new RegExp(
+      labelPattern + /\s*[:#-]?\s*/.source + currPfx.source + numPat.source,
+      "i"
+    );
+    const m = text.match(re);
+    return m ? parseAmt(m[1] || m[2]) : NaN;
+  };
+
+  // PRIORITY 1 — High-confidence "final payable" labels (checked in order)
+  const grandTotalLabels = [
+    /grand\s*total/,
+    /total\s*amount\s*payable/,
+    /amount\s*payable/,
+    /net\s*payable/,
+    /total\s*payable/,
+    /invoice\s*total/,
+    /total\s*due/,
+    /amount\s*due/,
+    /balance\s*due/,
+    /final\s*total/,
+    /total\s*invoice\s*value/,
+    /total\s*amount\s*due/,
+    /total\s*amount/,
+    /amount\s*to\s*pay/,
+    /payable\s*amount/,
+    /net\s*amount\s*payable/,
+    /total/,            // generic "total" — last resort in priority 1
+  ];
+
+  let grandTotal = NaN;
+  let grandTotalRaw = "Not Detected";
+
+  for (const labelRe of grandTotalLabels) {
+    const val = matchLabel(labelRe.source);
+    if (!isNaN(val) && val > 0) {
+      grandTotal = val;
+      grandTotalRaw = val.toString();
+      break;
+    }
   }
 
-  let taxAmount = "Not Detected";
-  const taxMatch = text.match(/(?:tax\s*amount|cgst|sgst|igst|gst\s*amount|total\s*tax|vat)\s*(?:\d+%)?\s*[:#-]?\s*(?:rs\.?|inr|₹|\$)?\s*([0-9,]+(?:\.[0-9]{2})?)/i);
-  if (taxMatch) {
-    taxAmount = taxMatch[1].replace(/,/g, "").trim();
+  // PRIORITY 2 — Scan all lines; collect all monetary values that appear
+  // near "total", "payable", "amount" keywords. Pick the LARGEST.
+  if (isNaN(grandTotal) || grandTotal === 0) {
+    const lines = text.split(/[\n\r]+/);
+    let candidates = [];
+
+    for (const line of lines) {
+      const ll = line.toLowerCase();
+      // Line must contain a total-like keyword
+      if (
+        ll.includes("total") ||
+        ll.includes("payable") ||
+        ll.includes("amount due") ||
+        ll.includes("balance")
+      ) {
+        // Skip lines that are ONLY intermediate values
+        if (
+          /^\s*(?:cgst|sgst|igst|tax|discount|shipping|freight|charges|subtotal|sub\s*total)\s/i.test(line)
+        ) continue;
+
+        // Extract all numbers from the line
+        const nums = [...line.matchAll(/([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]+(?:\.[0-9]{1,2})?)/g)];
+        for (const nm of nums) {
+          const v = parseAmt(nm[1]);
+          if (!isNaN(v) && v > 0) candidates.push(v);
+        }
+      }
+    }
+
+    if (candidates.length > 0) {
+      grandTotal = Math.max(...candidates);
+      grandTotalRaw = grandTotal.toString();
+    }
   }
 
-  let amount = "Not Detected";
-  const subtotalMatch = text.match(/(?:subtotal|sub\s*total|net\s*amount|taxable\s*value|amount|value)\s*[:#-]?\s*(?:rs\.?|inr|₹|\$)?\s*([0-9,]+(?:\.[0-9]{2})?)/i);
+  // PRIORITY 3 — Last resort: largest monetary value in entire document
+  // (only used if no total-labelled value found)
+  if (isNaN(grandTotal) || grandTotal === 0) {
+    const allNums = [...text.matchAll(/(?:₹|rs\.?\s*|inr\s*)([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]{4,}(?:\.[0-9]{1,2})?)/gi)];
+    const vals = allNums.map(m => parseAmt(m[1])).filter(v => !isNaN(v) && v > 0);
+    if (vals.length > 0) {
+      grandTotal = Math.max(...vals);
+      grandTotalRaw = grandTotal.toString();
+    }
+  }
+
+  // 10. Tax Amount (CGST + SGST + IGST combined, or single tax line)
+  let taxAmount = NaN;
+  // Try IGST first (single integrated tax)
+  const igstMatch = text.match(/igst\s*(?:\d+%?)?\s*[:#-]?\s*(?:rs\.?|inr|₹|\$)?\s*([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]+(?:\.[0-9]{1,2})?)/i);
+  if (igstMatch) {
+    taxAmount = parseAmt(igstMatch[1]);
+  } else {
+    // Try CGST + SGST
+    const cgstMatch = text.match(/cgst\s*(?:\d+%?)?\s*[:#-]?\s*(?:rs\.?|inr|₹|\$)?\s*([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]+(?:\.[0-9]{1,2})?)/i);
+    const sgstMatch = text.match(/sgst\s*(?:\d+%?)?\s*[:#-]?\s*(?:rs\.?|inr|₹|\$)?\s*([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]+(?:\.[0-9]{1,2})?)/i);
+    const cgst = cgstMatch ? parseAmt(cgstMatch[1]) : NaN;
+    const sgst = sgstMatch ? parseAmt(sgstMatch[1]) : NaN;
+    if (!isNaN(cgst) && !isNaN(sgst)) {
+      taxAmount = cgst + sgst;
+    } else if (!isNaN(cgst)) {
+      taxAmount = cgst * 2; // assume equal CGST+SGST
+    } else {
+      // Generic tax amount label
+      const taxGenMatch = text.match(/(?:tax\s*amount|gst\s*amount|total\s*tax|vat)\s*[:#-]?\s*(?:rs\.?|inr|₹|\$)?\s*([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]+(?:\.[0-9]{1,2})?)/i);
+      if (taxGenMatch) taxAmount = parseAmt(taxGenMatch[1]);
+    }
+  }
+
+  // 11. Subtotal / net amount before tax
+  let amount = NaN;
+  const subtotalMatch = text.match(/(?:subtotal|sub\s*total|taxable\s*value|taxable\s*amount|net\s*amount|amount\s*before\s*tax)\s*[:#-]?\s*(?:rs\.?|inr|₹|\$)?\s*([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]+(?:\.[0-9]{1,2})?)/i);
   if (subtotalMatch) {
-    amount = subtotalMatch[1].replace(/,/g, "").trim();
-  } else if (grandTotal !== "Not Detected" && taxAmount !== "Not Detected") {
-    const gt = parseFloat(grandTotal);
-    const tx = parseFloat(taxAmount);
-    if (!isNaN(gt) && !isNaN(tx)) {
-      amount = (gt - tx).toString();
-    }
-  } else if (grandTotal !== "Not Detected") {
-    const gt = parseFloat(grandTotal);
-    if (!isNaN(gt)) {
-      amount = Math.round(gt / 1.18).toString();
-      taxAmount = Math.round(gt - parseFloat(amount)).toString();
-    }
+    amount = parseAmt(subtotalMatch[1]);
+  } else if (!isNaN(grandTotal) && !isNaN(taxAmount)) {
+    amount = grandTotal - taxAmount;
+  } else if (!isNaN(grandTotal)) {
+    // Estimate: assume 18% GST
+    amount = Math.round(grandTotal / 1.18);
+    taxAmount = grandTotal - amount;
   }
 
-  // 10. Metadata / Contact Info
+  // 12. Contact Info
   let email = "Not Detected";
   const emailMatch = text.match(/\b([a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,})\b/i);
-  if (emailMatch) {
-    email = emailMatch[0].trim();
-  }
+  if (emailMatch) email = emailMatch[0].trim();
 
   let phoneNumber = "Not Detected";
-  const phoneMatch = text.match(/(?:phone|tel|mobile|contact)(?:\s*no\.?|\s*number)?\s*[:#-]?\s*(\+?[0-9\s-]{10,15})/i);
-  if (phoneMatch) {
-    phoneNumber = phoneMatch[1].trim();
-  }
+  const phoneMatch = text.match(/(?:phone|tel|mobile|contact)(?:\s*no\.?|\s*number)?\s*[:#-]?\s*(\+?[0-9][\d\s-]{8,14})/i);
+  if (phoneMatch) phoneNumber = phoneMatch[1].trim();
 
   let vendorAddress = "Not Detected";
   const addressMatch = text.match(/(?:address|addr)\s*:\s*([^\n\r]+)/i);
-  if (addressMatch) {
-    vendorAddress = addressMatch[1].trim();
+  if (addressMatch) vendorAddress = addressMatch[1].trim();
+
+  // Extract buyer address from invoice
+  let buyerAddress = "Not Detected";
+  const buyerAddrMatch = text.match(/(?:bill\s*to|billed\s*to|ship\s*to|buyer\s*address)\s*:?\s*\n?\s*([^\n\r]+)/i);
+  if (buyerAddrMatch && buyerAddrMatch[1].trim().length > 5) {
+    buyerAddress = buyerAddrMatch[1].trim();
   }
+
+  // Final safe values
+  const safeGrandTotal  = isNaN(grandTotal) ? 0 : grandTotal;
+  const safeTaxAmount   = isNaN(taxAmount)  ? 0 : taxAmount;
+  const safeAmount      = isNaN(amount)     ? 0 : amount;
 
   return {
     vendorName,
@@ -280,9 +386,13 @@ export function parseInvoiceFields(text, ocrConfidence = 100) {
     dueDate,
     buyerName,
     gstNumber,
-    amount: amount === "Not Detected" ? 0 : parseFloat(amount),
-    taxAmount: taxAmount === "Not Detected" ? 0 : parseFloat(taxAmount),
-    grandTotal: grandTotal === "Not Detected" ? 0 : parseFloat(grandTotal),
+    amount:     safeAmount,
+    taxAmount:  safeTaxAmount,
+    grandTotal: safeGrandTotal,
+    // Human-readable display string preserved with original formatting
+    grandTotalDisplay: safeGrandTotal > 0
+      ? `${currency === "INR" ? "₹" : currency === "USD" ? "$" : "€"}${safeGrandTotal.toLocaleString("en-IN")}`
+      : "Not Detected",
     currency,
     poNumber,
     bankAccount,
@@ -290,9 +400,14 @@ export function parseInvoiceFields(text, ocrConfidence = 100) {
     email,
     phoneNumber,
     vendorAddress,
-    buyerAddress: "Plot 12, BKC, Bandra East, Mumbai 400051",
+    buyerAddress,
     products: [
-      { description: `Extracted billing services under ${invoiceNumber}`, quantity: 1, unitPrice: amount === "Not Detected" ? 0 : parseFloat(amount), total: amount === "Not Detected" ? 0 : parseFloat(amount) }
+      {
+        description: `Extracted billing services under ${invoiceNumber}`,
+        quantity: 1,
+        unitPrice: safeAmount,
+        total: safeAmount
+      }
     ]
   };
 }
@@ -302,3 +417,4 @@ function cleanDateStr(raw) {
   if (cleaned.length > 20) cleaned = cleaned.slice(0, 20).trim();
   return cleaned;
 }
+
