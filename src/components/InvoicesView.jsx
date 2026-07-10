@@ -2,11 +2,13 @@ import React, { useState, useEffect, useRef } from "react";
 import { 
   Upload, FileText, Search, Filter, ShieldCheck, ShieldAlert, AlertTriangle,
   Play, Plus, ArrowRight, Eye, ChevronDown, Check, X, Info,
-  ArrowUpDown, ArrowUp, ArrowDown, Sparkles, Loader2, CheckCircle, RefreshCw
+  ArrowUpDown, ArrowUp, ArrowDown, Sparkles, Loader2, CheckCircle, RefreshCw,
+  Save, WifiOff
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { detectFraud, generateDynamicInvoiceFromFile } from "../utils/fraudChecker";
 import { extractTextFromPDF, extractTextFromImage, parseInvoiceFields } from "../utils/ocrPipeline";
+import { saveInvoiceToSupabase, getCurrentUser } from "../utils/supabaseClient";
 
 export default function InvoicesView({ 
   invoices, 
@@ -49,6 +51,9 @@ export default function InvoicesView({
 
   // Ingestion Results Dashboard modal
   const [uploadAlert, setUploadAlert] = useState(null);
+
+  // Save toast: { type: 'success'|'error'|'saving', message: string }
+  const [saveToast, setSaveToast] = useState(null);
 
   // Manual entry toggle
   const [showManualForm, setShowManualForm] = useState(false);
@@ -121,16 +126,16 @@ export default function InvoicesView({
 
       if (currentStep >= stepsList.length) {
         clearInterval(interval);
-        setTimeout(() => {
+        setTimeout(async () => {
           setIsIngesting(false);
           
-          // Add invoice to active database state
+          // Add invoice to active in-memory state (always, regardless of DB save)
           const exists = invoices.some(i => i.invoiceNumber === invoiceData.invoiceNumber);
           if (!exists) {
             setInvoices(prev => [invoiceData, ...prev]);
           }
 
-          // Trigger Results Dashboard Alert modal
+          // Trigger Results Dashboard Alert modal (always shown)
           setUploadAlert({
             status: invoiceData.riskLevel === "HIGH RISK" ? "fraud" : invoiceData.riskLevel === "SUSPICIOUS" ? "suspicious" : invoiceData.riskLevel === "REVIEW" ? "review" : "safe",
             invoiceNumber: invoiceData.invoiceNumber,
@@ -145,6 +150,27 @@ export default function InvoicesView({
             fraudType: invoiceData.fraudType,
             aiRecommendations: invoiceData.aiRecommendations
           });
+
+          // ── Supabase Save (non-blocking, results still visible on failure) ──
+          setSaveToast({ type: "saving", message: "Saving invoice to database..." });
+          try {
+            const user = await getCurrentUser();
+            const userId = user?.id ?? null;
+            const { success, error: saveError } = await saveInvoiceToSupabase(invoiceData, userId);
+
+            if (success) {
+              setSaveToast({ type: "success", message: "Invoice saved successfully." });
+              // Auto-dismiss success toast after 4 seconds
+              setTimeout(() => setSaveToast(null), 4000);
+            } else {
+              console.error("[FraudShield] DB save failed:", saveError);
+              setSaveToast({ type: "error", message: saveError || "Failed to save invoice to database." });
+            }
+          } catch (saveEx) {
+            console.error("[FraudShield] Unexpected save error:", saveEx);
+            setSaveToast({ type: "error", message: `Unexpected error: ${saveEx.message}` });
+          }
+          // ── end Supabase save ──
 
         }, 300);
       }
@@ -1395,6 +1421,61 @@ export default function InvoicesView({
           </div>
         </div>
       )}
+
+      {/* ── Save Toast Notification ── */}
+      {saveToast && (
+        <div
+          className={`fixed bottom-6 right-6 z-[200] max-w-sm w-full flex items-start gap-3 p-4 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.6)] border backdrop-blur-md animate-slide-in-toast transition-all ${
+            saveToast.type === "success"
+              ? "bg-emerald-950/90 border-emerald-500/40"
+              : saveToast.type === "error"
+              ? "bg-red-950/90 border-red-500/40"
+              : "bg-slate-900/90 border-white/10"
+          }`}
+        >
+          {/* Icon */}
+          <div className="flex-shrink-0 mt-0.5">
+            {saveToast.type === "saving" && (
+              <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />
+            )}
+            {saveToast.type === "success" && (
+              <CheckCircle className="w-5 h-5 text-emerald-400" />
+            )}
+            {saveToast.type === "error" && (
+              <WifiOff className="w-5 h-5 text-red-400" />
+            )}
+          </div>
+
+          {/* Message */}
+          <div className="flex-1 min-w-0">
+            <p className={`text-xs font-bold mb-0.5 ${
+              saveToast.type === "success" ? "text-emerald-300" :
+              saveToast.type === "error" ? "text-red-300" :
+              "text-gray-300"
+            }`}>
+              {saveToast.type === "saving" ? "Saving to Database…" :
+               saveToast.type === "success" ? "Invoice Saved Successfully" :
+               "Database Save Failed"}
+            </p>
+            <p className={`text-[11px] leading-relaxed break-words ${
+              saveToast.type === "error" ? "text-red-400" : "text-gray-400"
+            }`}>
+              {saveToast.message}
+            </p>
+          </div>
+
+          {/* Dismiss button (not shown while saving) */}
+          {saveToast.type !== "saving" && (
+            <button
+              onClick={() => setSaveToast(null)}
+              className="flex-shrink-0 p-1 rounded hover:bg-white/10 text-gray-500 hover:text-white transition-colors"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      )}
+
     </div>
   );
 }
