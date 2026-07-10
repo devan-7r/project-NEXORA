@@ -212,146 +212,149 @@ export function parseInvoiceFields(text, ocrConfidence = 100) {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // 9. AMOUNT EXTRACTION — Priority-based multi-pass approach
-  //    Priority 1: Exact label match for final payable amount
-  //    Priority 2: Largest monetary value near total-like labels
-  //    Priority 3: Largest standalone monetary value in document
+  // 9. STRICT AMOUNT EXTRACTION
+  //    Rules:
+  //    - Only read a number IMMEDIATELY after a known payable label
+  //    - Never estimate, calculate, or pick the largest value
+  //    - Blacklisted labels (tax/subtotal/GST components) are fully ignored
+  //    - If no valid label found → grandTotal = 0, display shows error message
+  //    - Full console debug output for verification
   // ─────────────────────────────────────────────────────────────────────────
 
-  // Currency prefix pattern
-  const currPfx = /(?:rs\.?\s*|inr\s*|₹\s*|\$\s*|€\s*)?/i;
-  // Number pattern: handles 1,00,000.00 / 100000.00 / 1,00,000
-  const numPat = /([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]+(?:\.[0-9]{1,2})?)/;
-
-  /** Parse a matched number string to float, removing commas */
   const parseAmt = (s) => {
     if (!s) return NaN;
     return parseFloat(s.replace(/,/g, ""));
   };
 
-  /** Try to match a label followed by an optional currency symbol and a number */
-  const matchLabel = (labelPattern) => {
+  // Number pattern: handles Indian (1,00,000.00) and international (100,000.00)
+  const NUM_PAT = /(?:rs\.?\s*|inr\s*|₹\s*|\$\s*|€\s*)?([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]+(?:\.[0-9]{1,2})?)/i;
+
+  /**
+   * Extract the number that appears IMMEDIATELY after a label pattern.
+   * Allows optional separator chars and an optional currency prefix.
+   */
+  const extractAfterLabel = (labelPattern) => {
     const re = new RegExp(
-      labelPattern + /\s*[:#-]?\s*/.source + currPfx.source + numPat.source,
+      labelPattern + /[\s:*|\-#.]*/.source + NUM_PAT.source,
       "i"
     );
     const m = text.match(re);
-    return m ? parseAmt(m[1] || m[2]) : NaN;
+    if (!m) return null;
+    const raw = m[1];
+    const val = parseAmt(raw);
+    if (isNaN(val) || val <= 0) return null;
+    return { value: val, raw };
   };
 
-  // PRIORITY 1 — High-confidence "final payable" labels (checked in order)
-  const grandTotalLabels = [
-    /grand\s*total/,
-    /total\s*amount\s*payable/,
-    /amount\s*payable/,
-    /net\s*payable/,
-    /total\s*payable/,
-    /invoice\s*total/,
-    /total\s*due/,
-    /amount\s*due/,
-    /balance\s*due/,
-    /final\s*total/,
-    /total\s*invoice\s*value/,
-    /total\s*amount\s*due/,
-    /total\s*amount/,
-    /amount\s*to\s*pay/,
-    /payable\s*amount/,
-    /net\s*amount\s*payable/,
-    /total/,            // generic "total" — last resort in priority 1
+  // Priority-ordered payable labels — first match with a valid number wins
+  const PAYABLE_LABELS = [
+    { label: "Grand Total",            pattern: /grand\s*total/.source },
+    { label: "Total Amount Payable",   pattern: /total\s*amount\s*payable/.source },
+    { label: "Amount Payable",         pattern: /amount\s*payable/.source },
+    { label: "Net Payable",            pattern: /net\s*payable/.source },
+    { label: "Total Payable",          pattern: /total\s*payable/.source },
+    { label: "Payable Amount",         pattern: /payable\s*amount/.source },
+    { label: "Invoice Total",          pattern: /invoice\s*total/.source },
+    { label: "Total Due",              pattern: /total\s*due/.source },
+    { label: "Amount Due",             pattern: /amount\s*due/.source },
+    { label: "Balance Due",            pattern: /balance\s*due/.source },
+    { label: "Net Amount Payable",     pattern: /net\s*amount\s*payable/.source },
+    { label: "Final Total",            pattern: /final\s*total/.source },
+    { label: "Total Invoice Value",    pattern: /total\s*invoice\s*value/.source },
+    { label: "Total Amount Due",       pattern: /total\s*amount\s*due/.source },
+    { label: "Amount to Pay",          pattern: /amount\s*to\s*pay/.source },
+    { label: "Total Amount",           pattern: /total\s*amount/.source },
+    { label: "Net Amount",             pattern: /net\s*amount/.source },
+    // Generic "Total" — only as absolute last resort
+    { label: "Total",                  pattern: /(?<![a-z])total(?!\s*(?:tax|cgst|sgst|igst|gst|discount|shipping|freight|round))/.source },
   ];
 
-  let grandTotal = NaN;
-  let grandTotalRaw = "Not Detected";
+  // Blacklisted labels — values near these are NEVER the payable total
+  const BLACKLISTED_LABELS = [
+    "subtotal", "sub total", "sub-total",
+    "tax amount", "total tax",
+    "cgst", "sgst", "igst", "gst",
+    "discount", "shipping", "freight", "round off", "rounding",
+    "advance", "tds",
+  ];
 
-  for (const labelRe of grandTotalLabels) {
-    const val = matchLabel(labelRe.source);
-    if (!isNaN(val) && val > 0) {
-      grandTotal = val;
-      grandTotalRaw = val.toString();
+  // Collect ALL currency values in document for debug display
+  const allCurrencyMatches = [
+    ...text.matchAll(/(?:₹|rs\.?\s*|inr\s*|\$\s*|€\s*)([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]{2,}(?:\.[0-9]{1,2})?)/gi)
+  ];
+  const allDetectedAmounts = allCurrencyMatches
+    .map(m => parseAmt(m[1]))
+    .filter(v => !isNaN(v) && v > 0)
+    .map(v => `\u20b9${v.toLocaleString("en-IN")}`);
+
+  // Run the strict label search
+  let grandTotal = NaN;
+  let matchedLabel = null;
+  let matchedRaw = null;
+
+  for (const { label, pattern } of PAYABLE_LABELS) {
+    const result = extractAfterLabel(pattern);
+    if (result) {
+      grandTotal = result.value;
+      matchedLabel = label;
+      matchedRaw = result.raw;
       break;
     }
   }
 
-  // PRIORITY 2 — Scan all lines; collect all monetary values that appear
-  // near "total", "payable", "amount" keywords. Pick the LARGEST.
-  if (isNaN(grandTotal) || grandTotal === 0) {
-    const lines = text.split(/[\n\r]+/);
-    let candidates = [];
-
-    for (const line of lines) {
-      const ll = line.toLowerCase();
-      // Line must contain a total-like keyword
-      if (
-        ll.includes("total") ||
-        ll.includes("payable") ||
-        ll.includes("amount due") ||
-        ll.includes("balance")
-      ) {
-        // Skip lines that are ONLY intermediate values
-        if (
-          /^\s*(?:cgst|sgst|igst|tax|discount|shipping|freight|charges|subtotal|sub\s*total)\s/i.test(line)
-        ) continue;
-
-        // Extract all numbers from the line
-        const nums = [...line.matchAll(/([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]+(?:\.[0-9]{1,2})?)/g)];
-        for (const nm of nums) {
-          const v = parseAmt(nm[1]);
-          if (!isNaN(v) && v > 0) candidates.push(v);
-        }
-      }
-    }
-
-    if (candidates.length > 0) {
-      grandTotal = Math.max(...candidates);
-      grandTotalRaw = grandTotal.toString();
-    }
+  // ── CONSOLE DEBUG OUTPUT ────────────────────────────────────────────────
+  console.groupCollapsed("[FraudShield] \uD83D\uDD0D Invoice Amount Extraction Debug");
+  console.log("\u2501\u2501\u2501 OCR TEXT \u2501\u2501\u2501\n" + text);
+  console.log("\n\u2501\u2501\u2501 Detected Currency Values \u2501\u2501\u2501");
+  if (allDetectedAmounts.length > 0) {
+    allDetectedAmounts.forEach(a => console.log("  " + a));
+  } else {
+    console.log("  (none found with currency prefix)");
   }
-
-  // PRIORITY 3 — Last resort: largest monetary value in entire document
-  // (only used if no total-labelled value found)
-  if (isNaN(grandTotal) || grandTotal === 0) {
-    const allNums = [...text.matchAll(/(?:₹|rs\.?\s*|inr\s*)([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]{4,}(?:\.[0-9]{1,2})?)/gi)];
-    const vals = allNums.map(m => parseAmt(m[1])).filter(v => !isNaN(v) && v > 0);
-    if (vals.length > 0) {
-      grandTotal = Math.max(...vals);
-      grandTotalRaw = grandTotal.toString();
-    }
+  console.log("\n\u2501\u2501\u2501 Blacklisted Labels (ignored) \u2501\u2501\u2501");
+  BLACKLISTED_LABELS.forEach(b => console.log("  \u2717 " + b));
+  console.log("\n\u2501\u2501\u2501 Label Match Result \u2501\u2501\u2501");
+  if (matchedLabel) {
+    console.log("  \u2705 Selected Label : " + matchedLabel);
+    console.log("  \u2705 Raw value      : " + matchedRaw);
+    console.log("  \u2705 Selected Amount: \u20b9" + grandTotal.toLocaleString("en-IN"));
+    console.log("  \u2139\uFE0F  Reason: First priority label with a valid positive number immediately after it.");
+  } else {
+    console.warn("  \u274C No valid payable label matched in OCR text.");
+    console.warn("  \u274C Returning: Payment amount could not be extracted.");
+    console.warn("  \u2139\uFE0F  Labels checked (in order):", PAYABLE_LABELS.map(l => l.label).join(", "));
   }
+  console.groupEnd();
+  // ── END DEBUG ─────────────────────────────────────────────────────────────
 
-  // 10. Tax Amount (CGST + SGST + IGST combined, or single tax line)
+  // 10. Tax Amount — from explicit tax labels only (never estimated)
   let taxAmount = NaN;
-  // Try IGST first (single integrated tax)
-  const igstMatch = text.match(/igst\s*(?:\d+%?)?\s*[:#-]?\s*(?:rs\.?|inr|₹|\$)?\s*([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]+(?:\.[0-9]{1,2})?)/i);
+  const igstMatch = text.match(/igst\s*(?:\d+%?)?\s*[:#-]?\s*(?:rs\.?|inr|\u20b9|\$)?\s*([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]+(?:\.[0-9]{1,2})?)/i);
   if (igstMatch) {
     taxAmount = parseAmt(igstMatch[1]);
   } else {
-    // Try CGST + SGST
-    const cgstMatch = text.match(/cgst\s*(?:\d+%?)?\s*[:#-]?\s*(?:rs\.?|inr|₹|\$)?\s*([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]+(?:\.[0-9]{1,2})?)/i);
-    const sgstMatch = text.match(/sgst\s*(?:\d+%?)?\s*[:#-]?\s*(?:rs\.?|inr|₹|\$)?\s*([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]+(?:\.[0-9]{1,2})?)/i);
+    const cgstMatch = text.match(/cgst\s*(?:\d+%?)?\s*[:#-]?\s*(?:rs\.?|inr|\u20b9|\$)?\s*([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]+(?:\.[0-9]{1,2})?)/i);
+    const sgstMatch = text.match(/sgst\s*(?:\d+%?)?\s*[:#-]?\s*(?:rs\.?|inr|\u20b9|\$)?\s*([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]+(?:\.[0-9]{1,2})?)/i);
     const cgst = cgstMatch ? parseAmt(cgstMatch[1]) : NaN;
     const sgst = sgstMatch ? parseAmt(sgstMatch[1]) : NaN;
     if (!isNaN(cgst) && !isNaN(sgst)) {
       taxAmount = cgst + sgst;
     } else if (!isNaN(cgst)) {
-      taxAmount = cgst * 2; // assume equal CGST+SGST
+      taxAmount = cgst;
     } else {
-      // Generic tax amount label
-      const taxGenMatch = text.match(/(?:tax\s*amount|gst\s*amount|total\s*tax|vat)\s*[:#-]?\s*(?:rs\.?|inr|₹|\$)?\s*([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]+(?:\.[0-9]{1,2})?)/i);
+      const taxGenMatch = text.match(/(?:tax\s*amount|gst\s*amount|total\s*tax|vat)\s*[:#-]?\s*(?:rs\.?|inr|\u20b9|\$)?\s*([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]+(?:\.[0-9]{1,2})?)/i);
       if (taxGenMatch) taxAmount = parseAmt(taxGenMatch[1]);
     }
   }
 
-  // 11. Subtotal / net amount before tax
+  // 11. Subtotal — from explicit subtotal labels only (never calculated)
   let amount = NaN;
-  const subtotalMatch = text.match(/(?:subtotal|sub\s*total|taxable\s*value|taxable\s*amount|net\s*amount|amount\s*before\s*tax)\s*[:#-]?\s*(?:rs\.?|inr|₹|\$)?\s*([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]+(?:\.[0-9]{1,2})?)/i);
+  const subtotalMatch = text.match(/(?:subtotal|sub\s*total|taxable\s*value|taxable\s*amount|amount\s*before\s*tax)\s*[:#-]?\s*(?:rs\.?|inr|\u20b9|\$)?\s*([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]+(?:\.[0-9]{1,2})?)/i);
   if (subtotalMatch) {
     amount = parseAmt(subtotalMatch[1]);
   } else if (!isNaN(grandTotal) && !isNaN(taxAmount)) {
+    // Only derive subtotal when both grand total AND tax are confirmed from labels
     amount = grandTotal - taxAmount;
-  } else if (!isNaN(grandTotal)) {
-    // Estimate: assume 18% GST
-    amount = Math.round(grandTotal / 1.18);
-    taxAmount = grandTotal - amount;
   }
 
   // 12. Contact Info
@@ -391,8 +394,8 @@ export function parseInvoiceFields(text, ocrConfidence = 100) {
     grandTotal: safeGrandTotal,
     // Human-readable display string preserved with original formatting
     grandTotalDisplay: safeGrandTotal > 0
-      ? `${currency === "INR" ? "₹" : currency === "USD" ? "$" : "€"}${safeGrandTotal.toLocaleString("en-IN")}`
-      : "Not Detected",
+      ? `${currency === "INR" ? "₹" : currency === "USD" ? "$" : "€"}${safeGrandTotal.toLocaleString("en-IN")} (via: ${matchedLabel})`
+      : "Payment amount could not be extracted.",
     currency,
     poNumber,
     bankAccount,
