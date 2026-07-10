@@ -229,93 +229,100 @@ export function parseInvoiceFields(text, ocrConfidence = 100) {
   // Number pattern: handles Indian (1,00,000.00) and international (100,000.00)
   const NUM_PAT = /(?:rs\.?\s*|inr\s*|₹\s*|\$\s*|€\s*)?([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]+(?:\.[0-9]{1,2})?)/i;
 
+  // ── Line-by-line scanner ─────────────────────────────────────────────────
+  // Split OCR text into lines for precise per-line analysis
+  const lines = text.split(/[\r\n]+/);
+
   /**
-   * Extract the number that appears after a label pattern.
-   * Uses [\s\S]{0,120} to span across newlines and table columns —
-   * handles cases where label is on one line and amount on the next.
-   * Stops early at the first valid number found after the label.
+   * Extract the rightmost (last) currency-like number from a single line.
+   * "Rightmost" because in invoice tables the amount is always in the last column.
+   * Handles: 53,100  |  53,100.00  |  ₹53,100  |  INR 53,100  |  Rs. 53,100
    */
-  const extractAfterLabel = (labelPattern) => {
-    // Allow up to 120 chars (including newlines) between label and number
-    const re = new RegExp(
-      labelPattern +
-        /[\s\S]{0,120}?/.source +
-        /(?:rs\.?\s*|inr\s*|₹\s*|\$\s*|€\s*)?/.source +
-        /([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]{2,}(?:\.[0-9]{1,2})?)/.source,
-      "i"
-    );
-    const m = text.match(re);
-    if (!m) return null;
-    // Make sure the matched number is not on a blacklisted-label line
-    const raw = m[1];
-    const val = parseAmt(raw);
-    if (isNaN(val) || val <= 0) return null;
-    // Check the matched segment doesn't contain a blacklisted label AFTER our target label
-    const segment = m[0].toLowerCase();
-    const blacklistInSegment = [
-      "cgst", "sgst", "igst", "subtotal", "sub total",
-      "discount", "shipping", "freight", "round off", "tax amount"
+  const extractAmountFromLine = (line) => {
+    const allNums = [
+      ...line.matchAll(/(?:rs\.?\s*|inr\s*|₹\s*|\$\s*|€\s*)?([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]{3,}(?:\.[0-9]{1,2})?)/gi)
     ];
-    // Only reject if a blacklisted label appears BETWEEN our label and the number
-    const labelEnd = segment.search(/[0-9]/); // index of first digit
-    const segmentBefore = segment.slice(0, labelEnd);
-    if (blacklistInSegment.some(b => segmentBefore.includes(b))) return null;
-    return { value: val, raw };
+    if (allNums.length === 0) return null;
+    // Pick the LAST number on the line (rightmost column = amount column in tables)
+    const last = allNums[allNums.length - 1];
+    const val = parseAmt(last[1]);
+    if (isNaN(val) || val <= 0) return null;
+    return { value: val, raw: last[1] };
   };
 
-  // Priority-ordered payable labels — first match with a valid number wins
+  // Priority-ordered payable labels — checked line by line
   const PAYABLE_LABELS = [
-    { label: "Grand Total",            pattern: /grand\s*total/.source },
-    { label: "Total Amount Payable",   pattern: /total\s*amount\s*payable/.source },
-    { label: "Amount Payable",         pattern: /amount\s*payable/.source },
-    { label: "Net Payable",            pattern: /net\s*payable/.source },
-    { label: "Total Payable",          pattern: /total\s*payable/.source },
-    { label: "Payable Amount",         pattern: /payable\s*amount/.source },
-    { label: "Invoice Total",          pattern: /invoice\s*total/.source },
-    { label: "Total Due",              pattern: /total\s*due/.source },
-    { label: "Amount Due",             pattern: /amount\s*due/.source },
-    { label: "Balance Due",            pattern: /balance\s*due/.source },
-    { label: "Net Amount Payable",     pattern: /net\s*amount\s*payable/.source },
-    { label: "Final Total",            pattern: /final\s*total/.source },
-    { label: "Total Invoice Value",    pattern: /total\s*invoice\s*value/.source },
-    { label: "Total Amount Due",       pattern: /total\s*amount\s*due/.source },
-    { label: "Amount to Pay",          pattern: /amount\s*to\s*pay/.source },
-    { label: "Total Amount",           pattern: /total\s*amount/.source },
-    { label: "Net Amount",             pattern: /net\s*amount/.source },
-    // Generic "Total" — only as absolute last resort
-    { label: "Total",                  pattern: /(?<![a-z])total(?!\s*(?:tax|cgst|sgst|igst|gst|discount|shipping|freight|round))/.source },
+    { label: "Grand Total",            re: /grand\s*total/i },
+    { label: "Total Amount Payable",   re: /total\s*amount\s*payable/i },
+    { label: "Amount Payable",         re: /amount\s*payable/i },
+    { label: "Net Payable",            re: /net\s*payable/i },
+    { label: "Total Payable",          re: /total\s*payable/i },
+    { label: "Payable Amount",         re: /payable\s*amount/i },
+    { label: "Invoice Total",          re: /invoice\s*total/i },
+    { label: "Total Due",              re: /total\s*due/i },
+    { label: "Amount Due",             re: /amount\s*due/i },
+    { label: "Balance Due",            re: /balance\s*due/i },
+    { label: "Net Amount Payable",     re: /net\s*amount\s*payable/i },
+    { label: "Final Total",            re: /final\s*total/i },
+    { label: "Total Invoice Value",    re: /total\s*invoice\s*value/i },
+    { label: "Total Amount Due",       re: /total\s*amount\s*due/i },
+    { label: "Amount to Pay",          re: /amount\s*to\s*pay/i },
+    { label: "Total Amount",           re: /total\s*amount/i },
+    { label: "Net Amount",             re: /net\s*amount/i },
+    { label: "Total",                  re: /\btotal\b(?!\s*(?:tax|cgst|sgst|igst|gst|discount|shipping|freight|round))/i },
   ];
 
-  // Blacklisted labels — values near these are NEVER the payable total
-  const BLACKLISTED_LABELS = [
-    "subtotal", "sub total", "sub-total",
-    "tax amount", "total tax",
-    "cgst", "sgst", "igst", "gst",
-    "discount", "shipping", "freight", "round off", "rounding",
-    "advance", "tds",
-  ];
+  // Blacklisted line patterns — skip lines containing only these
+  const BLACKLISTED_LINE_RE = /^\s*(?:cgst|sgst|igst|sub\s*total|subtotal|tax\s*amount|total\s*tax|discount|shipping|freight|round\s*off|rounding|advance|tds)\b/i;
 
-  // Collect ALL currency values in document for debug display
-  const allCurrencyMatches = [
-    ...text.matchAll(/(?:₹|rs\.?\s*|inr\s*|\$\s*|€\s*)([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]{2,}(?:\.[0-9]{1,2})?)/gi)
-  ];
-  const allDetectedAmounts = allCurrencyMatches
-    .map(m => parseAmt(m[1]))
-    .filter(v => !isNaN(v) && v > 0)
-    .map(v => `\u20b9${v.toLocaleString("en-IN")}`);
+  // Collect ALL detected currency amounts for debug
+  const allDetectedAmounts = [];
+  for (const line of lines) {
+    const nums = [...line.matchAll(/(?:rs\.?\s*|inr\s*|₹\s*|\$\s*|€\s*)([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]{3,}(?:\.[0-9]{1,2})?)/gi)];
+    for (const n of nums) {
+      const v = parseAmt(n[1]);
+      if (!isNaN(v) && v > 0) allDetectedAmounts.push(`₹${v.toLocaleString("en-IN")}`);
+    }
+  }
 
-  // Run the strict label search
+  // Run the line-by-line label search
   let grandTotal = NaN;
   let matchedLabel = null;
   let matchedRaw = null;
 
-  for (const { label, pattern } of PAYABLE_LABELS) {
-    const result = extractAfterLabel(pattern);
-    if (result) {
-      grandTotal = result.value;
-      matchedLabel = label;
-      matchedRaw = result.raw;
-      break;
+  outer:
+  for (const { label, re } of PAYABLE_LABELS) {
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      // Skip blacklisted lines entirely
+      if (BLACKLISTED_LINE_RE.test(line)) continue;
+      // Check if this line contains the target label
+      if (!re.test(line)) continue;
+
+      // Case 1: Label and amount are on the SAME line (e.g. "Grand Total: ₹53,100")
+      const sameLineResult = extractAmountFromLine(line);
+      if (sameLineResult) {
+        grandTotal = sameLineResult.value;
+        matchedLabel = label;
+        matchedRaw = sameLineResult.raw;
+        break outer;
+      }
+
+      // Case 2: Label is alone on its line, amount is on the NEXT non-empty line
+      for (let j = i + 1; j < lines.length && j <= i + 3; j++) {
+        const nextLine = lines[j].trim();
+        if (!nextLine) continue; // skip blank lines
+        // Don't grab a blacklisted label's line
+        if (BLACKLISTED_LINE_RE.test(nextLine)) break;
+        const nextResult = extractAmountFromLine(nextLine);
+        if (nextResult) {
+          grandTotal = nextResult.value;
+          matchedLabel = label + " (next line)";
+          matchedRaw = nextResult.raw;
+          break outer;
+        }
+        break; // only look 1 non-empty line ahead
+      }
     }
   }
 
