@@ -230,19 +230,36 @@ export function parseInvoiceFields(text, ocrConfidence = 100) {
   const NUM_PAT = /(?:rs\.?\s*|inr\s*|₹\s*|\$\s*|€\s*)?([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]+(?:\.[0-9]{1,2})?)/i;
 
   /**
-   * Extract the number that appears IMMEDIATELY after a label pattern.
-   * Allows optional separator chars and an optional currency prefix.
+   * Extract the number that appears after a label pattern.
+   * Uses [\s\S]{0,120} to span across newlines and table columns —
+   * handles cases where label is on one line and amount on the next.
+   * Stops early at the first valid number found after the label.
    */
   const extractAfterLabel = (labelPattern) => {
+    // Allow up to 120 chars (including newlines) between label and number
     const re = new RegExp(
-      labelPattern + /[\s:*|\-#.]*/.source + NUM_PAT.source,
+      labelPattern +
+        /[\s\S]{0,120}?/.source +
+        /(?:rs\.?\s*|inr\s*|₹\s*|\$\s*|€\s*)?/.source +
+        /([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]{2,}(?:\.[0-9]{1,2})?)/.source,
       "i"
     );
     const m = text.match(re);
     if (!m) return null;
+    // Make sure the matched number is not on a blacklisted-label line
     const raw = m[1];
     const val = parseAmt(raw);
     if (isNaN(val) || val <= 0) return null;
+    // Check the matched segment doesn't contain a blacklisted label AFTER our target label
+    const segment = m[0].toLowerCase();
+    const blacklistInSegment = [
+      "cgst", "sgst", "igst", "subtotal", "sub total",
+      "discount", "shipping", "freight", "round off", "tax amount"
+    ];
+    // Only reject if a blacklisted label appears BETWEEN our label and the number
+    const labelEnd = segment.search(/[0-9]/); // index of first digit
+    const segmentBefore = segment.slice(0, labelEnd);
+    if (blacklistInSegment.some(b => segmentBefore.includes(b))) return null;
     return { value: val, raw };
   };
 
